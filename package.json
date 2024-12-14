@@ -1,0 +1,49 @@
+{
+  "name": "engelsiz-yasam",
+  "version": "0.0.1",
+  "description": "A Quasar Project",
+  "productName": "Quasar App",
+  "author": "",
+  "private": true,
+  "scripts": {
+    "lint": "eslint --ext .js,.ts,.vue ./",
+    "lint:fix": "eslint --fix --ext .js,.ts,.vue src",
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "concurrently \"pnpm quasar dev\" \"npx ts-node ./backend/server.ts\"",
+    "build": "quasar build"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.4",
+    "@types/express": "^5.0.0",
+    "axios": "^1.7.8",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "express": "^4.21.1",
+    "quasar": "^2.16.0",
+    "vue": "^3.4.18",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^1.9.0",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^20.14.8",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "autoprefixer": "^10.4.2",
+    "concurrently": "^9.1.0",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "typescript": "~5.5.4",
+    "vite-plugin-checker": "^0.8.0",
+    "vue-tsc": "^2.0.29"
+  },
+  "engines": {
+    "node": "^20 || ^18 || ^16",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}
