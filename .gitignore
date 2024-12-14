@@ -1,0 +1,14 @@
+# Bağımlılık klasörleri
+node_modules/
+dist/
+
+# Kişisel yapılandırmalar
+.vscode/
+
+# Çevresel değişkenler
+.env
+
+# Geçici dosyalar
+*.log
+*.tmp
+pnpm-lock.yaml
