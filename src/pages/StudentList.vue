@@ -145,6 +145,7 @@
                :options="educationOptions"
                option-label="label"
                option-value="value"
+               emit-value
                outlined
                label="Aldığı Eğitim"
                dense
@@ -155,6 +156,7 @@
                :options="vehicleOptions"
                option-label="label"
                option-value="value"
+               emit-value
                outlined
                label="Servis Kullanımı"
                dense
@@ -179,6 +181,7 @@
                :options="bloodOptions"
                option-label="label"
                option-value="value"
+               emit-value
                outlined
                label="Kan grubu"
                dense

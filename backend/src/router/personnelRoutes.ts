@@ -5,12 +5,14 @@ import {
   updatePersonnel,
   deletePersonnel
 } from '../controller/personnelController'
+import upload from '../middleware/uploadMiddleware' // Fotoğraf yükleme middleware
 
 const router = express.Router()
 
 router.get('/', getAllPersonnel) // Tüm personelleri getir
-router.post('/', createPersonnel) // Yeni personel ekle
-router.put('/:id', updatePersonnel) // Personel güncelle
+// Fotoğraf yükleme middleware eklenmiş versiyon
+router.post('/', upload.single('file'), createPersonnel)
+router.put('/:id', upload.single('file'), updatePersonnel)
 router.delete('/:id', deletePersonnel) // Personel sil
 
 export default router

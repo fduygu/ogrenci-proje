@@ -65,6 +65,7 @@ export const updateStudent = async (
   res: Response
 ): Promise<void> => {
   try {
+    console.log('Gelen Veri:', req.body)
     // Fotoğraf yüklenmişse, URL oluştur
     const imageUrl = req.file
       ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
