@@ -29,6 +29,7 @@
       <!-- Servis Kullanımı -->
       <div class="q-field-row">
         <q-select v-model="studentData.vehicle" :options="vehicleOptions" option-label="label" option-value="value" label="Servis Kullanılsın mı?" required />
+        <q-select v-model="studentData.blood" :options="bloodOptions" option-label="label" option-value="value" label="Kan Grubu" required />
       </div>
       <!-- Fotoğraf Yükleme -->
       <div class="q-field-row">
@@ -62,9 +63,9 @@ export default defineComponent({
       education: { label: '', value: '' },
       diagnosis: '',
       address: '',
-      parentinfo: ''
+      parentinfo: '',
+      blood: { label: '', value: '' }
     })
-
     const selectedFile = ref<File | null>(null)
 
     const genderOptions = [
@@ -76,7 +77,16 @@ export default defineComponent({
       { label: 'Evet', value: 'Evet' },
       { label: 'Hayır', value: 'Hayır' }
     ]
-
+    const bloodOptions = [
+      { label: 'A+', value: 'A+' },
+      { label: 'A-', value: 'A-' },
+      { label: 'B+', value: 'B+' },
+      { label: 'B-', value: 'B-' },
+      { label: 'AB+', value: 'AB+' },
+      { label: 'AB-', value: 'AB-' },
+      { label: '0+', value: '0+' },
+      { label: '0-', value: '0-' }
+    ]
     const educationOptions = [
       { label: 'Bireysel', value: 'Bireysel' },
       { label: 'Fizyoterapi', value: 'Fizyoterapi' },
@@ -101,7 +111,7 @@ export default defineComponent({
         formData.append('diagnosis', studentData.diagnosis)
         formData.append('address', studentData.address)
         formData.append('parentinfo', studentData.parentinfo)
-
+        formData.append('blood', studentData.blood.value)
         // Dosyayı ekle
         if (selectedFile.value) {
           formData.append('file', selectedFile.value)
@@ -133,7 +143,8 @@ export default defineComponent({
         education: { label: '', value: '' },
         diagnosis: '',
         address: '',
-        parentinfo: ''
+        parentinfo: '',
+        blood: { label: '', value: '' }
       })
       selectedFile.value = null
     }
@@ -143,6 +154,7 @@ export default defineComponent({
       selectedFile,
       genderOptions,
       vehicleOptions,
+      bloodOptions,
       educationOptions,
       addOrUpdateStudent,
       resetForm

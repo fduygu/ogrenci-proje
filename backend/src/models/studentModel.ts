@@ -14,6 +14,7 @@ export interface IStudent extends Document {
   education: string
   imageUrl?: string// Optional field
   createdAt?: Date // Kayıt tarihi
+  blood: string
 }
 
 const StudentSchema = new Schema<IStudent>({
@@ -28,7 +29,8 @@ const StudentSchema = new Schema<IStudent>({
   address: { type: String, required: true },
   parentinfo: { type: String, required: true },
   education: { type: String, required: true },
-  imageUrl: { type: String, required: false }
+  imageUrl: { type: String, required: false },
+  blood: { type: String, required: false }
 },
 { timestamps: true } // Otomatik olarak createdAt ve updatedAt alanlarını ekler
 

@@ -90,6 +90,7 @@
               <p><strong>Cinsiyet:</strong> {{ selectedStudent.gender }}</p>
               <p><strong>Aldığı Eğitim:</strong> {{ selectedStudent.education }}</p>
               <p><strong>Servis Kullanıyor mu:</strong> {{ selectedStudent.vehicle }}</p>
+              <p><strong>Kan Grubu:</strong> {{ selectedStudent.blood }}</p>
               <p><strong>Tanısı:</strong> {{ selectedStudent.diagnosis }}</p>
               <p><strong>Kayıt Tarihi:</strong> {{ formatDate(selectedStudent.createdAt) }}</p>
             </div>
@@ -139,15 +140,21 @@
                dense
                class="q-mb-sm"
               />
-              <q-input
+              <q-select
                v-model="selectedStudent.education"
+               :options="educationOptions"
+               option-label="label"
+               option-value="value"
                outlined
                label="Aldığı Eğitim"
                dense
                class="q-mb-sm"
               />
-              <q-input
+              <q-select
                v-model="selectedStudent.vehicle"
+               :options="vehicleOptions"
+               option-label="label"
+               option-value="value"
                outlined
                label="Servis Kullanımı"
                dense
@@ -166,6 +173,16 @@
                 label="Tanısı"
                 dense
                 class="q-mb-sm"
+              />
+              <q-select
+               v-model="selectedStudent.blood"
+               :options="bloodOptions"
+               option-label="label"
+               option-value="value"
+               outlined
+               label="Kan grubu"
+               dense
+               class="q-mb-sm"
               />
             </div>
           </div>
@@ -238,6 +255,7 @@ interface Student {
   diagnosis: string;
   createdAt: string; // Kayıt tarihi alanı
   imageUrl?: string;
+  blood:string;
 }
 
 export default defineComponent({
@@ -260,12 +278,32 @@ export default defineComponent({
       education: '',
       diagnosis: '',
       createdAt: '',
-      imageUrl: ''
+      imageUrl: '',
+      blood: ''
     })
     const isLoading = ref(true)
     const isEditMode = ref(false)
     const isDeleteDialogOpen = ref(false)
-
+    const vehicleOptions = [
+      { label: 'Evet', value: 'Evet' },
+      { label: 'Hayır', value: 'Hayır' }
+    ]
+    const bloodOptions = [
+      { label: 'A+', value: 'A+' },
+      { label: 'A-', value: 'A-' },
+      { label: 'B+', value: 'B+' },
+      { label: 'B-', value: 'B-' },
+      { label: 'AB+', value: 'AB+' },
+      { label: 'AB-', value: 'AB-' },
+      { label: '0+', value: '0+' },
+      { label: '0-', value: '0-' }
+    ]
+    const educationOptions = [
+      { label: 'Bireysel', value: 'Bireysel' },
+      { label: 'Fizyoterapi', value: 'Fizyoterapi' },
+      { label: 'Grup', value: 'Grup' },
+      { label: 'Dil Konuşma', value: 'Dil Konuşma' }
+    ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
@@ -363,7 +401,10 @@ export default defineComponent({
       updateStudent,
       confirmDelete,
       deleteStudent,
-      isLoading
+      isLoading,
+      vehicleOptions,
+      educationOptions,
+      bloodOptions
     }
   }
 })
