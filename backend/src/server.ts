@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import router from '../src/router' // Doğru yolu kontrol edin
+import path from 'path'
 
 const app = express()
 const PORT = 3000
@@ -25,6 +26,9 @@ mongoose
 
 // Rotalar
 app.use('/api', router) // Burada rotaları kontrol edin
+
+console.log('Static folder path:', path.join(__dirname, '../uploads'))
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 // Sunucuyu başlat
 app.listen(PORT, () => {

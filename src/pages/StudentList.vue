@@ -18,6 +18,15 @@
       bordered
       dense
     >
+      <!-- Fotoğraf Sütunu -->
+      <template v-slot:body-cell-photo="props">
+        <q-td :props="props">
+          <q-avatar size="40px" rounded>
+            <img v-if="props.row.imageUrl" :src="props.row.imageUrl" alt="Fotoğraf" />
+            <q-icon v-else name="person" color="grey" />
+          </q-avatar>
+        </q-td>
+      </template>
       <template v-slot:body-cell-name="props">
         <q-td :props="props">
           <q-btn flat dense color="primary" @click="showStudentDetails(props.row)">
@@ -52,72 +61,141 @@
 
     <!-- Detay Popup -->
     <q-dialog v-model="isPopupOpen">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Öğrenci Detayları</div>
+      <q-card style="width: 600px; max-width: 90vw">
+        <q-card-section class="row">
+          <!-- Öğrenci Resmi -->
+          <div class="col-4 flex flex-center">
+            <q-img
+              v-if="selectedStudent?.imageUrl"
+              :src="selectedStudent.imageUrl"
+              alt="Fotoğraf"
+              style="width: 150px; height: 150px; border-radius: 50%"
+            />
+            <q-icon v-else name="person" color="grey" size="150px" />
+          </div>
+
+          <!-- Öğrenci Bilgileri -->
+          <div class="col-8">
+            <div v-if="!isEditMode">
+              <div class="text-h6">
+                {{ selectedStudent?.name }} {{ selectedStudent?.surname }}
+              </div>
+              <q-separator class="q-my-sm" />
+              <div v-if="selectedStudent" class="q-mt-md">
+              <p><strong>Yaş:</strong> {{ selectedStudent.age }}</p>
+              <p><strong>Adres:</strong> {{ selectedStudent.address }}</p>
+              <p><strong>Veli Bilgisi:</strong> {{ selectedStudent.parentinfo }}</p>
+              <p><strong>Telefon:</strong> {{ selectedStudent.phoneNumber }}</p>
+              <p><strong>T.C. Kimlik No:</strong> {{ selectedStudent.tcNumber }}</p>
+              <p><strong>Cinsiyet:</strong> {{ selectedStudent.gender }}</p>
+              <p><strong>Aldığı Eğitim:</strong> {{ selectedStudent.education }}</p>
+              <p><strong>Servis Kullanıyor mu:</strong> {{ selectedStudent.vehicle }}</p>
+              <p><strong>Tanısı:</strong> {{ selectedStudent.diagnosis }}</p>
+              <p><strong>Kayıt Tarihi:</strong> {{ formatDate(selectedStudent.createdAt) }}</p>
+            </div>
+          </div>
+
+            <!-- Düzenleme Formu -->
+            <div v-else>
+              <q-input
+                v-model="selectedStudent.name"
+                outlined
+                label="Ad"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedStudent.surname"
+                outlined
+                label="Soyad"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedStudent.tcNumber"
+                outlined
+                label="T.C.Kimlik No"
+                dense
+                class="q-mb-sm"
+                />
+              <q-input
+                v-model="selectedStudent.age"
+                outlined
+                label="Yaş"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedStudent.address"
+                outlined
+                label="Adres"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+               v-model="selectedStudent.parentinfo"
+               outlined
+               label="Veli Bilgisi"
+               dense
+               class="q-mb-sm"
+              />
+              <q-input
+               v-model="selectedStudent.education"
+               outlined
+               label="Aldığı Eğitim"
+               dense
+               class="q-mb-sm"
+              />
+              <q-input
+               v-model="selectedStudent.vehicle"
+               outlined
+               label="Servis Kullanımı"
+               dense
+               class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedStudent.phoneNumber"
+                outlined
+                label="Telefon"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedStudent.diagnosis"
+                outlined
+                label="Tanısı"
+                dense
+                class="q-mb-sm"
+              />
+            </div>
+          </div>
         </q-card-section>
-        <q-separator />
-        <q-card-section v-if="selectedStudent">
-          <q-form @submit.prevent="updateStudent">
-            <q-input
-              v-model="selectedStudent.name"
-              label="Ad"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedStudent.surname"
-              label="Soyad"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedStudent.tcNumber"
-              label="T.C. Kimlik No"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedStudent.phoneNumber"
-              label="Telefon"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedStudent.diagnosis"
-              label="Tanısı"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-          </q-form>
-        </q-card-section>
+
+        <!-- Düzenle ve Sil Butonları -->
         <q-card-actions align="right">
           <q-btn
+            v-if="!isEditMode"
             flat
             label="Düzenle"
-            color="green"
+            color="primary"
             @click="isEditMode = true"
-            v-if="!isEditMode"
           />
           <q-btn
+            v-if="isEditMode"
             flat
             label="Kaydet"
-            color="blue"
+            color="primary"
             @click="updateStudent"
-            v-if="isEditMode"
           />
           <q-btn
+            v-if="isEditMode"
             flat
-            label="Sil"
-            color="red"
-            @click="confirmDelete"
+            label="Vazgeç"
+            color="secondary"
+            @click="isEditMode = false"
           />
-          <q-btn flat label="Kapat" @click="isPopupOpen = false" />
+          <q-btn flat label="Sil" color="red" @click="confirmDelete" />
+          <q-btn flat label="Kapat" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -148,12 +226,18 @@ import { format } from 'date-fns'
 interface Student {
   _id: string;
   name: string;
+  age:number;
   surname: string;
   tcNumber: string;
   gender: string;
+  vehicle:string;
+  address:string;
+  parentinfo:string;
+  education:string;
   phoneNumber: string;
   diagnosis: string;
   createdAt: string; // Kayıt tarihi alanı
+  imageUrl?: string;
 }
 
 export default defineComponent({
@@ -162,12 +246,28 @@ export default defineComponent({
     const students = ref<Student[]>([])
     const searchQuery = ref('')
     const isPopupOpen = ref(false)
-    const selectedStudent = ref<Student | null>(null)
+    const selectedStudent = ref<Student>({
+      _id: '',
+      name: '',
+      surname: '',
+      age: 0,
+      tcNumber: '',
+      gender: '',
+      vehicle: '',
+      address: '',
+      phoneNumber: '',
+      parentinfo: '',
+      education: '',
+      diagnosis: '',
+      createdAt: '',
+      imageUrl: ''
+    })
     const isLoading = ref(true)
     const isEditMode = ref(false)
     const isDeleteDialogOpen = ref(false)
 
     const columns = [
+      { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
       { name: 'surname', label: 'Soyad', field: 'surname', align: 'left' as const },
       { name: 'gender', label: 'Cinsiyet', field: 'gender', align: 'left' as const },
@@ -268,7 +368,6 @@ export default defineComponent({
   }
 })
 </script>
-
 <style scoped>
 .student-details {
   display: grid;

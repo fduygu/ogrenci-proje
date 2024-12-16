@@ -13,6 +13,7 @@
       "layouts/*": ["src/layouts/*"]
     }
   },
+  "include": ["src/**/*", "types.d.ts"],
   "exclude": [
     "./dist",
     "./.quasar",

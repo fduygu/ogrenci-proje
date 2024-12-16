@@ -5,12 +5,16 @@ import {
   updateStudent,
   deleteStudent
 } from '../controller/studentController'
+import upload from '../middleware/uploadMiddleware' // Fotoğraf yükleme middleware
 
 const router = express.Router()
 
 router.get('/', getAllStudents)
-router.post('/', createStudent)
-router.put('/:id', updateStudent)
+
+// Fotoğraf yükleme middleware eklenmiş versiyon
+router.post('/', upload.single('file'), createStudent)
+
+router.put('/:id', upload.single('file'), updateStudent)
 router.delete('/:id', deleteStudent)
 
 export default router

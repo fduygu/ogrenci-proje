@@ -1,32 +1,40 @@
 <template>
   <q-page class="q-pa-md q-page-styled">
     <q-form @submit.prevent="addOrUpdateStudent" @reset="resetForm" class="q-gutter-md q-form-styled">
+      <!-- Ad ve Soyad -->
       <div class="q-field-row">
         <q-input v-model="studentData.name" label="Ad" required />
         <q-input v-model="studentData.surname" label="Soyad" required />
       </div>
+      <!-- T.C. Kimlik No ve Cinsiyet -->
       <div class="q-field-row">
         <q-input v-model="studentData.tcNumber" label="T.C. Kimlik No" required />
-        <q-select v-model="studentData.gender" :options="genderOptions"  option-label="label" option-value="value" label="Cinsiyet" required />
+        <q-select v-model="studentData.gender" :options="genderOptions" option-label="label" option-value="value" label="Cinsiyet" required />
       </div>
+      <!-- Yaş ve Telefon -->
       <div class="q-field-row">
         <q-input v-model="studentData.age" type="number" label="Yaş" required />
         <q-input v-model="studentData.phoneNumber" label="Telefon" mask="(###) ### - ## ##" />
       </div>
+      <!-- Adres ve Tanı -->
       <div class="q-field-row">
         <q-input v-model="studentData.address" label="Adres" required />
         <q-input v-model="studentData.diagnosis" label="Tanısı" required />
       </div>
+      <!-- Veli Bilgisi ve Eğitim Türü -->
       <div class="q-field-row">
         <q-input v-model="studentData.parentinfo" label="Veli Bilgisi" required />
-        <q-select v-model="studentData.education" :options="educationOptions"  option-label="label" option-value="value" label="Aldığı Eğitim" required />
+        <q-select v-model="studentData.education" :options="educationOptions" option-label="label" option-value="value" label="Aldığı Eğitim" required />
       </div>
+      <!-- Servis Kullanımı -->
       <div class="q-field-row">
-        <q-select v-model="studentData.vehicle" :options="vehicleOptions"  option-label="label" option-value="value" label="Servis Kullanılsın mı?" required />
+        <q-select v-model="studentData.vehicle" :options="vehicleOptions" option-label="label" option-value="value" label="Servis Kullanılsın mı?" required />
       </div>
+      <!-- Fotoğraf Yükleme -->
       <div class="q-field-row">
-        <q-input v-model="studentData.imageUrl" label="Resim URL'si" />
+        <q-file v-model="selectedFile" label="Fotoğraf Yükle" filled />
       </div>
+      <!-- Butonlar -->
       <div>
         <q-btn label="Kaydet" type="submit" color="primary" />
         <q-btn label="Sıfırla" type="reset" color="secondary" />
@@ -36,28 +44,28 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, reactive, ref } from 'vue'
 import { Notify } from 'quasar'
 import axios from 'axios'
 
 export default defineComponent({
   name: 'StudentRegistration',
   setup () {
-    // Reactive nesne ile tüm form verileri
     const studentData = reactive({
       name: '',
       surname: '',
       age: null as number | null,
       phoneNumber: '',
       tcNumber: '',
-      gender: { label: '', value: '' }, // Türü doğrudan tanımlamaya gerek yok
+      gender: { label: '', value: '' },
       vehicle: { label: '', value: '' },
       education: { label: '', value: '' },
       diagnosis: '',
       address: '',
-      parentinfo: '',
-      imageUrl: ''
+      parentinfo: ''
     })
+
+    const selectedFile = ref<File | null>(null)
 
     const genderOptions = [
       { label: 'Erkek', value: 'Erkek' },
@@ -76,55 +84,63 @@ export default defineComponent({
       { label: 'Dil Konuşma', value: 'Dil Konuşma' }
     ]
 
+    // Formu Gönderme Fonksiyonu
     const addOrUpdateStudent = async () => {
       try {
-        // Form verilerini backend'e uygun hale getir
-        const sanitizedData = {
-          ...studentData,
-          gender: studentData.gender.value, // Object'in value'sunu alın
-          vehicle: studentData.vehicle.value, // Object'in value'sunu alın
-          education: studentData.education.value // Object'in value'sunu alın
+        const formData = new FormData()
+
+        // Form verilerini ekle
+        formData.append('name', studentData.name)
+        formData.append('surname', studentData.surname)
+        formData.append('tcNumber', studentData.tcNumber)
+        formData.append('age', studentData.age?.toString() || '')
+        formData.append('phoneNumber', studentData.phoneNumber)
+        formData.append('gender', studentData.gender.value)
+        formData.append('vehicle', studentData.vehicle.value)
+        formData.append('education', studentData.education.value)
+        formData.append('diagnosis', studentData.diagnosis)
+        formData.append('address', studentData.address)
+        formData.append('parentinfo', studentData.parentinfo)
+
+        // Dosyayı ekle
+        if (selectedFile.value) {
+          formData.append('file', selectedFile.value)
         }
 
-        await axios.post('http://localhost:3000/api/students', sanitizedData)
-        Notify.create({
-          message: 'Kayıt başarılı!',
-          color: 'positive',
-          position: 'top'
+        // Backend'e istek gönder
+        await axios.post('http://localhost:3000/api/students', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
         })
 
+        Notify.create({ message: 'Kayıt başarılı!', color: 'positive', position: 'top' })
         resetForm()
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          console.error('Kayıt sırasında hata:', error.response?.data || error.message)
-        } else {
-          console.error('Bilinmeyen bir hata oluştu:', error)
-        }
-        Notify.create({
-          message: 'Kayıt sırasında bir hata oluştu!',
-          color: 'negative',
-          position: 'top'
-        })
+      } catch (error) {
+        console.error('Kayıt hatası:', error)
+        Notify.create({ message: 'Kayıt sırasında bir hata oluştu!', color: 'negative', position: 'top' })
       }
     }
 
+    // Formu Sıfırlama Fonksiyonu
     const resetForm = () => {
-      studentData.name = ''
-      studentData.surname = ''
-      studentData.age = null
-      studentData.phoneNumber = ''
-      studentData.tcNumber = ''
-      studentData.gender = { label: '', value: '' } // Boş nesne atanıyor
-      studentData.vehicle = { label: '', value: '' } // Boş nesne atanıyor
-      studentData.diagnosis = ''
-      studentData.address = ''
-      studentData.parentinfo = ''
-      studentData.education = { label: '', value: '' } // Boş nesne atanıyor
-      studentData.imageUrl = ''
+      Object.assign(studentData, {
+        name: '',
+        surname: '',
+        age: null,
+        phoneNumber: '',
+        tcNumber: '',
+        gender: { label: '', value: '' },
+        vehicle: { label: '', value: '' },
+        education: { label: '', value: '' },
+        diagnosis: '',
+        address: '',
+        parentinfo: ''
+      })
+      selectedFile.value = null
     }
 
     return {
       studentData,
+      selectedFile,
       genderOptions,
       vehicleOptions,
       educationOptions,
@@ -161,7 +177,8 @@ export default defineComponent({
 }
 
 .q-field-row > .q-input,
-.q-field-row > .q-select {
+.q-field-row > .q-select,
+.q-field-row > .q-file {
   flex: 1;
 }
 
