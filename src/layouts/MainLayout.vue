@@ -44,14 +44,6 @@
               Öğrenci Listesi
             </q-item-section>
           </q-item>
-          <q-item clickable v-ripple to="/understudy">
-            <q-item-section avatar>
-              <q-icon name="person_add" />
-            </q-item-section>
-            <q-item-section>
-              Yedek Öğrenci Kaydı
-            </q-item-section>
-          </q-item>
           <q-item clickable v-ripple to="/understudy-list">
             <q-item-section avatar>
               <q-icon name="people" />

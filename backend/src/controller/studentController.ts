@@ -11,7 +11,7 @@ export const createStudent = async (req: Request, res: Response) => {
       : ''
 
     // Gelen veriye fotoğraf URL'sini ekle
-    const studentData = { ...req.body, imageUrl }
+    const studentData = { ...req.body, imageUrl, status: req.body.status || 'main' }
 
     // Öğrenci oluşturma servisini çağır
     const savedStudent = await StudentService.createStudent(studentData)

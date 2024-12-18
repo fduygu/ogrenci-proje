@@ -93,6 +93,7 @@
               <p><strong>Kan Grubu:</strong> {{ selectedStudent.blood }}</p>
               <p><strong>Tanısı:</strong> {{ selectedStudent.diagnosis }}</p>
               <p><strong>Kayıt Tarihi:</strong> {{ formatDate(selectedStudent.createdAt) }}</p>
+              <p><strong>Durumu:</strong> {{ statusText(selectedStudent.status) }}</p>
             </div>
           </div>
 
@@ -187,6 +188,16 @@
                dense
                class="q-mb-sm"
               />
+              <q-select
+               v-model="selectedStudent.status"
+               :options="statusOptions"
+               option-label="label"
+               option-value="value"
+               emit-value
+               label="Öğrenci Durumu"
+               dense
+               class="q-mb-sm"
+              />
             </div>
           </div>
         </q-card-section>
@@ -259,8 +270,9 @@ interface Student {
   createdAt: string; // Kayıt tarihi alanı
   imageUrl?: string;
   blood:string;
-}
+  status: 'main' | 'waiting';
 
+}
 export default defineComponent({
   name: 'StudentList',
   setup () {
@@ -282,7 +294,8 @@ export default defineComponent({
       diagnosis: '',
       createdAt: '',
       imageUrl: '',
-      blood: ''
+      blood: '',
+      status: 'main'
     })
     const isLoading = ref(true)
     const isEditMode = ref(false)
@@ -307,6 +320,10 @@ export default defineComponent({
       { label: 'Grup', value: 'Grup' },
       { label: 'Dil Konuşma', value: 'Dil Konuşma' }
     ]
+    const statusOptions = [
+      { label: 'Asıl Öğrenci', value: 'main' },
+      { label: 'Yedek Öğrenci', value: 'waiting' }
+    ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
@@ -322,6 +339,7 @@ export default defineComponent({
 
     const filteredStudents = computed(() =>
       students.value.filter((student) =>
+        student.status === 'main' && // Yalnızca "main" olan öğrenciler
         `${student.name} ${student.surname}`
           .toLowerCase()
           .includes(searchQuery.value.toLowerCase())
@@ -331,6 +349,7 @@ export default defineComponent({
     const fetchStudents = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/students')
+        console.log(response.data)
         students.value = response.data
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
@@ -371,7 +390,9 @@ export default defineComponent({
     const confirmDelete = () => {
       isDeleteDialogOpen.value = true
     }
-
+    const statusText = (status: string) => {
+      return status === 'main' ? 'Asıl Öğrenci' : 'Yedek Öğrenci'
+    }
     const deleteStudent = async () => {
       if (selectedStudent.value) {
         try {
@@ -407,7 +428,9 @@ export default defineComponent({
       isLoading,
       vehicleOptions,
       educationOptions,
-      bloodOptions
+      bloodOptions,
+      statusOptions,
+      statusText
     }
   }
 })

@@ -34,6 +34,7 @@
       <!-- Fotoğraf Yükleme -->
       <div class="q-field-row">
         <q-file v-model="selectedFile" label="Fotoğraf Yükle" filled />
+        <q-select v-model="studentData.status" :options="statusOptions" option-label="label" option-value="value" label="Durum Seç" required />
       </div>
       <!-- Butonlar -->
       <div>
@@ -64,7 +65,8 @@ export default defineComponent({
       diagnosis: '',
       address: '',
       parentinfo: '',
-      blood: { label: '', value: '' }
+      blood: { label: '', value: '' },
+      status: { label: '', value: '' }
     })
     const selectedFile = ref<File | null>(null)
 
@@ -86,6 +88,10 @@ export default defineComponent({
       { label: 'AB-', value: 'AB-' },
       { label: '0+', value: '0+' },
       { label: '0-', value: '0-' }
+    ]
+    const statusOptions = [
+      { label: 'Asıl', value: 'main' },
+      { label: 'Yedek', value: 'waiting' }
     ]
     const educationOptions = [
       { label: 'Bireysel', value: 'Bireysel' },
@@ -112,6 +118,7 @@ export default defineComponent({
         formData.append('address', studentData.address)
         formData.append('parentinfo', studentData.parentinfo)
         formData.append('blood', studentData.blood.value)
+        formData.append('status', studentData.status.value)
         // Dosyayı ekle
         if (selectedFile.value) {
           formData.append('file', selectedFile.value)
@@ -144,7 +151,8 @@ export default defineComponent({
         diagnosis: '',
         address: '',
         parentinfo: '',
-        blood: { label: '', value: '' }
+        blood: { label: '', value: '' },
+        status: { label: '', value: '' }
       })
       selectedFile.value = null
     }
@@ -155,6 +163,7 @@ export default defineComponent({
       genderOptions,
       vehicleOptions,
       bloodOptions,
+      statusOptions,
       educationOptions,
       addOrUpdateStudent,
       resetForm
