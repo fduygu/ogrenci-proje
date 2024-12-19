@@ -14,7 +14,8 @@
       <!-- Yaş ve Telefon -->
       <div class="q-field-row">
         <q-input v-model="studentData.age" type="number" label="Yaş" required />
-        <q-input v-model="studentData.phoneNumber" label="Telefon" mask="(###) ### - ## ##" />
+        <q-input v-model="studentData.phoneNumber1" label="Telefon 1" mask="(###) ### - ## ##" />
+        <q-input v-model="studentData.phoneNumber2" label="Telefon 2" mask="(###) ### - ## ##" />
       </div>
       <!-- Adres ve Tanı -->
       <div class="q-field-row">
@@ -24,7 +25,7 @@
       <!-- Veli Bilgisi ve Eğitim Türü -->
       <div class="q-field-row">
         <q-input v-model="studentData.parentinfo" label="Veli Bilgisi" required />
-        <q-select v-model="studentData.education" :options="educationOptions" option-label="label" option-value="value" label="Aldığı Eğitim" required />
+        <q-select v-model="studentData.education" :options="educationOptions" option-label="label" option-value="value" label="Aldığı Eğitim" multiple required />
       </div>
       <!-- Servis Kullanımı -->
       <div class="q-field-row">
@@ -46,7 +47,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue'
+import { defineComponent, reactive, ref, watch } from 'vue'
 import { Notify } from 'quasar'
 import axios from 'axios'
 
@@ -57,11 +58,12 @@ export default defineComponent({
       name: '',
       surname: '',
       age: null as number | null,
-      phoneNumber: '',
+      phoneNumber1: '',
+      phoneNumber2: '',
       tcNumber: '',
       gender: { label: '', value: '' },
       vehicle: { label: '', value: '' },
-      education: { label: '', value: '' },
+      education: [] as string[],
       diagnosis: '',
       address: '',
       parentinfo: '',
@@ -69,7 +71,15 @@ export default defineComponent({
       status: { label: '', value: '' }
     })
     const selectedFile = ref<File | null>(null)
-
+    // Soyadı büyük harfe çevir
+    watch(
+      () => studentData.surname,
+      (newValue) => {
+        if (newValue) {
+          studentData.surname = newValue.toUpperCase()
+        }
+      }
+    )
     const genderOptions = [
       { label: 'Erkek', value: 'Erkek' },
       { label: 'Kadın', value: 'Kadın' }
@@ -91,7 +101,7 @@ export default defineComponent({
     ]
     const statusOptions = [
       { label: 'Asıl', value: 'main' },
-      { label: 'Yedek', value: 'waiting' }
+      { label: 'Sıradaki', value: 'waiting' }
     ]
     const educationOptions = [
       { label: 'Bireysel', value: 'Bireysel' },
@@ -110,10 +120,11 @@ export default defineComponent({
         formData.append('surname', studentData.surname)
         formData.append('tcNumber', studentData.tcNumber)
         formData.append('age', studentData.age?.toString() || '')
-        formData.append('phoneNumber', studentData.phoneNumber)
+        formData.append('phoneNumber1', studentData.phoneNumber1)
+        formData.append('phoneNumber2', studentData.phoneNumber2)
         formData.append('gender', studentData.gender.value)
         formData.append('vehicle', studentData.vehicle.value)
-        formData.append('education', studentData.education.value)
+        formData.append('education', JSON.stringify(studentData.education))
         formData.append('diagnosis', studentData.diagnosis)
         formData.append('address', studentData.address)
         formData.append('parentinfo', studentData.parentinfo)
@@ -143,11 +154,12 @@ export default defineComponent({
         name: '',
         surname: '',
         age: null,
-        phoneNumber: '',
+        phoneNumber1: '',
+        phoneNumber2: '',
         tcNumber: '',
         gender: { label: '', value: '' },
         vehicle: { label: '', value: '' },
-        education: { label: '', value: '' },
+        education: [],
         diagnosis: '',
         address: '',
         parentinfo: '',

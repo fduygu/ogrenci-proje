@@ -39,14 +39,14 @@
           {{ props.row.surname }}
         </q-td>
       </template>
-      <template v-slot:body-cell-gender="props">
+      <template v-slot:body-cell-phoneNumber1="props">
         <q-td :props="props">
-          {{ props.row.gender }}
+          {{ props.row.phoneNumber1 }}
         </q-td>
       </template>
-      <template v-slot:body-cell-tcNumber="props">
+      <template v-slot:body-cell-education="props">
         <q-td :props="props">
-          {{ props.row.tcNumber }}
+          {{ props.row.education.join(', ') }}
         </q-td>
       </template>
       <template v-slot:body-cell-createdAt="props">
@@ -85,10 +85,11 @@
               <p><strong>Yaş:</strong> {{ selectedStudent.age }}</p>
               <p><strong>Adres:</strong> {{ selectedStudent.address }}</p>
               <p><strong>Veli Bilgisi:</strong> {{ selectedStudent.parentinfo }}</p>
-              <p><strong>Telefon:</strong> {{ selectedStudent.phoneNumber }}</p>
+              <p><strong>Telefon1:</strong> {{ selectedStudent.phoneNumber1 }}</p>
+              <p><strong>Telefon2:</strong> {{ selectedStudent.phoneNumber2 }}</p>
               <p><strong>T.C. Kimlik No:</strong> {{ selectedStudent.tcNumber }}</p>
               <p><strong>Cinsiyet:</strong> {{ selectedStudent.gender }}</p>
-              <p><strong>Aldığı Eğitim:</strong> {{ selectedStudent.education }}</p>
+              <p><strong>Aldığı Eğitim:</strong> {{ selectedStudent.education.join(', ') }}</p>
               <p><strong>Servis Kullanıyor mu:</strong> {{ selectedStudent.vehicle }}</p>
               <p><strong>Kan Grubu:</strong> {{ selectedStudent.blood }}</p>
               <p><strong>Tanısı:</strong> {{ selectedStudent.diagnosis }}</p>
@@ -150,6 +151,7 @@
                outlined
                label="Aldığı Eğitim"
                dense
+               multiple
                class="q-mb-sm"
               />
               <q-select
@@ -164,11 +166,22 @@
                class="q-mb-sm"
               />
               <q-input
-                v-model="selectedStudent.phoneNumber"
+                v-model="selectedStudent.phoneNumber1"
                 outlined
-                label="Telefon"
+                label="Telefon 1"
                 dense
                 class="q-mb-sm"
+                mask="(###) ### - ## ##"
+                fill-mask
+              />
+              <q-input
+                v-model="selectedStudent.phoneNumber2"
+                outlined
+                label="Telefon 2"
+                dense
+                class="q-mb-sm"
+                mask="(###) ### - ## ##"
+                fill-mask
               />
               <q-input
                 v-model="selectedStudent.diagnosis"
@@ -198,7 +211,7 @@
                dense
                class="q-mb-sm"
               />
-            </div>
+          </div>
           </div>
         </q-card-section>
 
@@ -264,14 +277,14 @@ interface Student {
   vehicle:string;
   address:string;
   parentinfo:string;
-  education:string;
-  phoneNumber: string;
+  education: string[];
+  phoneNumber1: string;
+  phoneNumber2: string;
   diagnosis: string;
   createdAt: string; // Kayıt tarihi alanı
   imageUrl?: string;
   blood:string;
   status: 'main' | 'waiting';
-
 }
 export default defineComponent({
   name: 'StudentList',
@@ -288,9 +301,10 @@ export default defineComponent({
       gender: '',
       vehicle: '',
       address: '',
-      phoneNumber: '',
+      phoneNumber1: '',
+      phoneNumber2: '',
       parentinfo: '',
-      education: '',
+      education: [],
       diagnosis: '',
       createdAt: '',
       imageUrl: '',
@@ -322,14 +336,14 @@ export default defineComponent({
     ]
     const statusOptions = [
       { label: 'Asıl Öğrenci', value: 'main' },
-      { label: 'Yedek Öğrenci', value: 'waiting' }
+      { label: 'Sıradaki Öğrenci', value: 'waiting' }
     ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
       { name: 'surname', label: 'Soyad', field: 'surname', align: 'left' as const },
-      { name: 'gender', label: 'Cinsiyet', field: 'gender', align: 'left' as const },
-      { name: 'tcNumber', label: 'T.C. Kimlik No', field: 'tcNumber', align: 'left' as const },
+      { name: 'phoneNumber1', label: 'Telefon', field: 'phoneNumber1', align: 'left' as const },
+      { name: 'education', label: 'Aldığı Eğitim', field: 'education', align: 'left' as const },
       { name: 'createdAt', label: 'Kayıt Tarihi', field: 'createdAt', align: 'left' as const }
     ]
 
@@ -349,7 +363,7 @@ export default defineComponent({
     const fetchStudents = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/students')
-        console.log(response.data)
+        console.log('Backend\'den Gelen Veriler:', response.data) // Backend'den gelen veriyi logla
         students.value = response.data
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
@@ -391,7 +405,7 @@ export default defineComponent({
       isDeleteDialogOpen.value = true
     }
     const statusText = (status: string) => {
-      return status === 'main' ? 'Asıl Öğrenci' : 'Yedek Öğrenci'
+      return status === 'main' ? 'Asıl Öğrenci' : 'Sıradaki Öğrenci'
     }
     const deleteStudent = async () => {
       if (selectedStudent.value) {
