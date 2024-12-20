@@ -108,3 +108,14 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ message: 'Öğrenci silinirken bir hata oluştu', error })
   }
 }
+export const getStudentsWithService = async (req: Request, res: Response) => {
+  try {
+    console.log('Servis kullanan öğrenciler için sorgu başlıyor...')
+    const studentsWithService = await StudentService.getStudentsByFilter({ vehicle: 'Evet' })
+    console.log('Bulunan öğrenciler:', studentsWithService)
+    res.status(200).json(studentsWithService)
+  } catch (error) {
+    console.error('Hata:', error)
+    res.status(500).json({ message: 'Servis kullanan öğrenciler alınırken hata oluştu', error })
+  }
+}

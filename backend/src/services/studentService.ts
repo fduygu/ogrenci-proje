@@ -28,3 +28,6 @@ export const updateStudent = async (
 export const deleteStudent = async (id: string): Promise<IStudent | null> => {
   return await StudentModel.findByIdAndDelete(id)
 }
+export const getStudentsByFilter = async (filter: Record<string, unknown>) => {
+  return await StudentModel.find(filter)
+}

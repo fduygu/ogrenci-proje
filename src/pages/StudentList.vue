@@ -371,7 +371,6 @@ export default defineComponent({
         isLoading.value = false
       }
     }
-
     const showStudentDetails = (student: Student) => {
       selectedStudent.value = { ...student }
       isPopupOpen.value = true
