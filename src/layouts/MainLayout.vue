@@ -30,7 +30,7 @@
         <q-expansion-item class="menu-item orange" icon="school" label="Öğrenciler" expand-separator default-open>
           <q-item clickable v-ripple to="/register">
             <q-item-section avatar>
-              <q-icon name="person_add" />
+              <q-icon name="add_circle" />
             </q-item-section>
             <q-item-section>
               Öğrenci Kaydı
@@ -38,7 +38,7 @@
           </q-item>
           <q-item clickable v-ripple to="/student-list">
             <q-item-section avatar>
-              <q-icon name="people" />
+              <q-icon name="group" />
             </q-item-section>
             <q-item-section>
               Öğrenci Listesi
@@ -46,17 +46,25 @@
           </q-item>
           <q-item clickable v-ripple to="/understudy-list">
             <q-item-section avatar>
-              <q-icon name="people" />
+              <q-icon name="hourglass_top" />
             </q-item-section>
             <q-item-section>
-              Yedek Öğrenci Listesi
+              Sıradaki Öğrenci Listesi
+            </q-item-section>
+          </q-item>
+          <q-item clickable v-ripple to="/inactivestudy-list">
+            <q-item-section avatar>
+              <q-icon name="remove_circle" />
+            </q-item-section>
+            <q-item-section>
+              Pasif Öğrenci Listesi
             </q-item-section>
           </q-item>
         </q-expansion-item>
         <q-expansion-item class="menu-item pink" icon="people" label="Personeller" expand-separator default-open>
           <q-item clickable v-ripple to="/personel">
             <q-item-section avatar>
-              <q-icon name="person_add" />
+              <q-icon name="account_box" />
             </q-item-section>
             <q-item-section>
               Personel Kaydı
@@ -64,7 +72,7 @@
           </q-item>
           <q-item clickable v-ripple to="/personnel-list">
             <q-item-section avatar>
-              <q-icon name="group" />
+              <q-icon name="groups" />
             </q-item-section>
             <q-item-section>
               Personel Listesi
@@ -75,7 +83,7 @@
         <q-expansion-item class="menu-item purple" icon="school" label="Sınıflar" expand-separator default-open>
           <q-item clickable v-ripple to="/classes">
             <q-item-section avatar>
-              <q-icon name="person_add" />
+              <q-icon name="add_business" />
             </q-item-section>
             <q-item-section>
               Sınıf Kaydı
@@ -83,7 +91,7 @@
           </q-item>
           <q-item clickable v-ripple to="/classes-list">
             <q-item-section avatar>
-              <q-icon name="group" />
+              <q-icon name="table_view" />
             </q-item-section>
             <q-item-section>
               Sınıf Listesi
@@ -93,7 +101,7 @@
 
         <q-item class="menu-item turquoise" clickable v-ripple to="/planlama">
           <q-item-section avatar>
-            <q-icon name="assignment" />
+            <q-icon name="calendar_today" />
           </q-item-section>
           <q-item-section>
             Planlama
@@ -101,7 +109,7 @@
         </q-item>
         <q-item class="menu-item orange" clickable v-ripple to="/degerlendirme">
           <q-item-section avatar>
-            <q-icon name="assessment" />
+            <q-icon name="grading" />
           </q-item-section>
           <q-item-section>
             Değerlendirme
@@ -109,7 +117,7 @@
         </q-item>
         <q-item class="menu-item pink" clickable v-ripple to="/service-list">
           <q-item-section avatar>
-            <q-icon name="commute" />
+            <q-icon name="local_taxi" />
           </q-item-section>
           <q-item-section>
             Servis Listesi
@@ -118,7 +126,7 @@
 
         <q-item class="menu-item purple" clickable v-ripple to="/kazanımlar">
           <q-item-section avatar>
-            <q-icon name="star" />
+            <q-icon name="military_tech" />
           </q-item-section>
           <q-item-section>
             Kazanımlar

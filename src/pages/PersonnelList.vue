@@ -18,6 +18,18 @@
       bordered
       dense
     >
+      <!-- Fotoğraf Sütunu -->
+      <template v-slot:body-cell-photo="props">
+        <q-td :props="props">
+          <q-avatar size="40px" rounded>
+            <img
+             v-if="props.row.imageUrl"
+             :src="`http://localhost:3000${props.row.imageUrl}`"
+             alt="Fotoğraf" />
+            <q-icon v-else name="person" color="grey" />
+          </q-avatar>
+        </q-td>
+      </template>
       <template v-slot:body-cell-name="props">
         <q-td :props="props">
           <q-btn flat dense color="primary" @click="showPersonnelDetails(props.row)">
@@ -26,25 +38,20 @@
         </q-td>
       </template>
       <template v-slot:body-cell-surname="props">
-    <q-td :props="props">
-      {{ props.row.surname }}
-    </q-td>
-  </template>
-  <template v-slot:body-cell-title="props">
-    <q-td :props="props">
-      {{ props.row.title }}
-    </q-td>
-  </template>
-  <template v-slot:body-cell-branch="props">
-    <q-td :props="props">
-      {{ props.row.branch }}
-    </q-td>
-  </template>
-  <template v-slot:body-cell-createdAt="props">
-    <q-td :props="props">
-      {{ formatDate(props.row.createdAt) }}
-    </q-td>
-  </template>
+        <q-td :props="props">
+          {{ props.row.surname }}
+        </q-td>
+      </template>
+      <template v-slot:body-cell-title="props">
+        <q-td :props="props">
+          {{ props.row.title }}
+        </q-td>
+      </template>
+      <template v-slot:body-cell-branch="props">
+        <q-td :props="props">
+          {{ props.row.branch }}
+        </q-td>
+      </template>
     </q-table>
 
     <!-- Yükleniyor Göstergesi -->
@@ -52,86 +59,115 @@
 
     <!-- Detay Popup -->
     <q-dialog v-model="isPopupOpen">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Personel Detayları</div>
+      <q-card style="width: 600px; max-width: 90vw">
+        <q-card-section class="row">
+          <!-- Personel Resmi -->
+          <div class="col-4 flex flex-center">
+            <q-img
+              v-if="selectedPersonnel?.imageUrl"
+              :src="`http://localhost:3000${selectedPersonnel.imageUrl}`"
+              alt="Fotoğraf"
+              style="width: 150px; height: 150px; border-radius: 50%"
+            />
+            <q-icon v-else name="person" color="grey" size="150px" />
+          </div>
+
+          <!-- Personel Bilgileri -->
+          <div class="col-8">
+            <div v-if="!isEditMode">
+              <div class="text-h6">
+                {{ selectedPersonnel?.name }} {{ selectedPersonnel?.surname }}
+              </div>
+              <q-separator class="q-my-sm" />
+              <div v-if="selectedPersonnel" class="q-mt-md">
+                <p><strong>Ünvan:</strong> {{ selectedPersonnel.title }}</p>
+                <p><strong>Branş:</strong> {{ selectedPersonnel.branch }}</p>
+                <p><strong>Telefon:</strong> {{ selectedPersonnel.phone }}</p>
+                <p><strong>Adres:</strong> {{ selectedPersonnel.address }}</p>
+                <p><strong>T.C. Kimlik No:</strong> {{ selectedPersonnel.tcNumber }}</p>
+              </div>
+            </div>
+
+            <!-- Düzenleme Formu -->
+            <div v-else>
+              <q-input
+                v-model="selectedPersonnel.name"
+                outlined
+                label="Ad"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedPersonnel.surname"
+                outlined
+                label="Soyad"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedPersonnel.tcNumber"
+                outlined
+                label="T.C. Kimlik No"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedPersonnel.title"
+                outlined
+                label="Ünvan"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedPersonnel.branch"
+                outlined
+                label="Branş"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedPersonnel.phone"
+                outlined
+                label="Telefon"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedPersonnel.address"
+                outlined
+                label="Adres"
+                dense
+                class="q-mb-sm"
+              />
+            </div>
+          </div>
         </q-card-section>
-        <q-separator />
-        <q-card-section v-if="selectedPersonnel">
-          <q-form @submit.prevent="updatePersonnel">
-            <q-input
-              v-model="selectedPersonnel.name"
-              label="Ad"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedPersonnel.surname"
-              label="Soyad"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedPersonnel.tcNumber"
-              label="T.C. Kimlik No"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedPersonnel.title"
-              label="Ünvan"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedPersonnel.branch"
-              label="Branş"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedPersonnel.phone"
-              label="Telefon"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedPersonnel.address"
-              label="Adres"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-          </q-form>
-        </q-card-section>
+
+        <!-- Düzenle ve Sil Butonları -->
         <q-card-actions align="right">
           <q-btn
+            v-if="!isEditMode"
             flat
             label="Düzenle"
-            color="green"
+            color="primary"
             @click="isEditMode = true"
-            v-if="!isEditMode"
           />
           <q-btn
+            v-if="isEditMode"
             flat
             label="Kaydet"
-            color="blue"
+            color="primary"
             @click="updatePersonnel"
-            v-if="isEditMode"
           />
           <q-btn
+            v-if="isEditMode"
             flat
-            label="Sil"
-            color="red"
-            @click="confirmDelete"
+            label="Vazgeç"
+            color="secondary"
+            @click="isEditMode = false"
           />
-          <q-btn flat label="Kapat" @click="isPopupOpen = false" />
+          <q-btn flat label="Sil" color="red" @click="confirmDelete" />
+          <q-btn flat label="Kapat" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -169,6 +205,7 @@ interface Personnel {
   phone: string;
   address: string;
   createdAt?: string;
+  imageUrl?: string;
 }
 
 export default defineComponent({
@@ -177,26 +214,34 @@ export default defineComponent({
     const personnel = ref<Personnel[]>([])
     const searchQuery = ref('')
     const isPopupOpen = ref(false)
-    const selectedPersonnel = ref<Personnel | null>(null)
+    const selectedPersonnel = ref<Personnel>({
+      _id: '',
+      name: '',
+      surname: '',
+      tcNumber: '',
+      title: '',
+      branch: '',
+      phone: '',
+      address: '',
+      imageUrl: '',
+      createdAt: ''
+    })
     const isLoading = ref(true)
     const isEditMode = ref(false)
     const isDeleteDialogOpen = ref(false)
 
-    // Tablo sütunları
     const columns = [
+      { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
       { name: 'surname', label: 'Soyad', field: 'surname', align: 'left' as const },
       { name: 'title', label: 'Ünvan', field: 'title', align: 'left' as const },
-      { name: 'branch', label: 'Branş', field: 'branch', align: 'left' as const },
-      { name: 'createdAt', label: 'Kayıt Tarihi', field: 'createdAt', align: 'left' as const }
+      { name: 'branch', label: 'Brans', field: 'branch', align: 'left' as const }
     ]
 
-    // Tarihi formatlama fonksiyonu
     const formatDate = (date: string | Date | undefined) => {
       return date ? format(new Date(date), 'dd/MM/yyyy HH:mm') : '-'
     }
 
-    // Filtrelenmiş personel
     const filteredPersonnel = computed(() =>
       personnel.value.filter((person) =>
         (person.name + ' ' + person.surname)
@@ -205,7 +250,6 @@ export default defineComponent({
       )
     )
 
-    // Personelleri backend'den getir
     const fetchPersonnel = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/personnel')
@@ -217,8 +261,8 @@ export default defineComponent({
       }
     }
 
-    // Diğer fonksiyonlar: showPersonnelDetails, updatePersonnel, confirmDelete, deletePersonnel
     const showPersonnelDetails = (person: Personnel) => {
+      console.log('Seçilen Personel:', person)
       selectedPersonnel.value = { ...person }
       isPopupOpen.value = true
     }
@@ -226,19 +270,16 @@ export default defineComponent({
     const updatePersonnel = async () => {
       if (selectedPersonnel.value) {
         try {
-          const response = await axios.put(
+          await axios.put(
             `http://localhost:3000/api/personnel/${selectedPersonnel.value._id}`,
             selectedPersonnel.value
           )
-          console.log('Güncelleme başarılı:', response.data)
-
           const index = personnel.value.findIndex(
             (p) => p._id === selectedPersonnel.value?._id
           )
           if (index !== -1) {
             personnel.value[index] = { ...selectedPersonnel.value }
           }
-
           isPopupOpen.value = false
           isEditMode.value = false
         } catch (error) {
@@ -276,7 +317,7 @@ export default defineComponent({
       selectedPersonnel,
       isEditMode,
       isDeleteDialogOpen,
-      formatDate, // Formatlama fonksiyonu burada return edilmelidir
+      formatDate,
       showPersonnelDetails,
       updatePersonnel,
       confirmDelete,
@@ -291,16 +332,13 @@ export default defineComponent({
 .q-page {
   padding: 20px;
 }
-
 .q-dialog {
   max-width: 80vw;
 }
-
 .q-card {
   width: 100%;
   max-width: 600px;
 }
-
 .q-spinner {
   display: block;
   margin: 20px auto;

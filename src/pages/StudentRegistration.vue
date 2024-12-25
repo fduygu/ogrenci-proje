@@ -100,8 +100,9 @@ export default defineComponent({
       { label: '0-', value: '0-' }
     ]
     const statusOptions = [
-      { label: 'Asıl', value: 'main' },
-      { label: 'Sıradaki', value: 'waiting' }
+      { label: 'Aktif', value: 'main' },
+      { label: 'Sıradaki', value: 'waiting' },
+      { label: 'Pasif', value: 'inactive' }
     ]
     const educationOptions = [
       { label: 'Bireysel', value: 'Bireysel' },

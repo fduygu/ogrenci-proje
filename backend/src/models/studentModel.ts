@@ -13,10 +13,10 @@ export interface IStudent extends Document {
   address: string
   parentinfo: string
   education: string[]
-  imageUrl?: string// Optional field
+  imageUrl?: string
   createdAt?: Date // Kayıt tarihi
   blood: string
-  status: 'main' | 'waiting'
+  status: 'main' | 'waiting' | 'inactive'
 }
 
 const StudentSchema = new Schema<IStudent>({
@@ -34,7 +34,7 @@ const StudentSchema = new Schema<IStudent>({
   education: { type: [String], required: true },
   imageUrl: { type: String, required: false },
   blood: { type: String, required: false },
-  status: { type: String, enum: ['main', 'waiting'], default: 'main' } // "main" asıl liste, "waiting" yedek liste
+  status: { type: String, enum: ['main', 'waiting', 'inactive'], default: 'main' } // Güncellenmiş "status" alanı
 },
 { timestamps: true } // Otomatik olarak createdAt ve updatedAt alanlarını ekler
 

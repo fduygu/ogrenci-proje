@@ -9,8 +9,7 @@ import upload from '../middleware/uploadMiddleware' // Fotoğraf yükleme middle
 
 const router = express.Router()
 
-router.get('/', getAllPersonnel) // Tüm personelleri getir
-// Fotoğraf yükleme middleware eklenmiş versiyon
+router.get('/', getAllPersonnel)
 router.post('/', upload.single('file'), createPersonnel)
 router.put('/:id', upload.single('file'), updatePersonnel)
 router.delete('/:id', deletePersonnel) // Personel sil

@@ -9,24 +9,21 @@
         <q-input
           v-model="className"
           label="Sınıf Adı"
-          filled
         />
         <q-input
           v-model="classroomNumber"
           label="Sınıf Numarası"
           type="text"
-          filled
         />
         <q-input
           v-model="capacity"
           label="Kapasite"
           type="number"
-          filled
         />
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Kaydet" @click="saveClass" />
+        <q-btn flat label="Kaydet" @click="saveClass"  primary/>
       </q-card-actions>
     </q-card>
 

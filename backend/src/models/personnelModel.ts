@@ -8,6 +8,7 @@ export interface IPersonnel extends Document {
   branch: string
   phone: string
   address: string
+  imageUrl?: string
   createdAt?: Date // Kayıt tarihi
 }
 
@@ -18,6 +19,7 @@ const PersonnelSchema = new Schema<IPersonnel>({
   title: { type: String, required: true },
   branch: { type: String, required: true },
   phone: { type: String, required: true },
+  imageUrl: { type: String, required: false },
   address: { type: String, required: true }
 },
 { timestamps: true } // Otomatik olarak createdAt ve updatedAt alanlarını ekler

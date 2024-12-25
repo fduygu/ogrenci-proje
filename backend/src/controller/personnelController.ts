@@ -3,9 +3,17 @@ import * as PersonnelService from '../services/personnelService'
 
 // Personel oluşturma
 export const createPersonnel = async (req: Request, res: Response) => {
-  console.log('Gelen Veri:', req.body) // Gelen veriyi logla
   try {
-    const savedPersonnel = await PersonnelService.createPersonnel(req.body)// Veritabanına kaydet
+    console.log('Yüklenen Dosya:', req.file)
+    // Eğer fotoğraf yüklendiyse imageUrl'i ayarla
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null
+
+    // Personel verisini oluştur
+    const personnelData = {
+      ...req.body,
+      imageUrl // Fotoğraf URL'sini ekle
+    }
+    const savedPersonnel = await PersonnelService.createPersonnel(personnelData)// Veritabanına kaydet
     console.log('Kaydedilen Personel:', savedPersonnel) // Başarıyla kaydedilen veriyi logla
     res.status(201).json(savedPersonnel)
   } catch (error) {
@@ -41,7 +49,14 @@ export const getPersonnelById = async (req: Request, res: Response): Promise<voi
 // Personel güncelleme
 export const updatePersonnel = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updatedPersonnel = await PersonnelService.updatePersonnel(req.params.id, req.body)
+    // Eğer yeni bir fotoğraf yüklendiyse imageUrl'i güncelle
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null
+
+    const personnelData = {
+      ...req.body,
+      ...(imageUrl && { imageUrl })// Sadece yeni bir fotoğraf varsa güncelle
+    }
+    const updatedPersonnel = await PersonnelService.updatePersonnel(req.params.id, personnelData)
     if (!updatedPersonnel) {
       res.status(404).json({ message: 'Personel bulunamadı' })
       return

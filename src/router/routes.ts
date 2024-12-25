@@ -9,6 +9,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'register', component: () => import('pages/StudentRegistration.vue') },
       { path: 'understudy', component: () => import('pages/UnderStudyRegistration.vue') },
       { path: 'understudy-list', component: () => import('pages/UnderStudyList.vue') },
+      { path: 'inactivestudy-list', component: () => import('pages/InactiveStudyList.vue') },
       { path: 'personel', component: () => import('pages/PersonnelRegistration.vue') },
       { path: 'student-list', component: () => import('pages/StudentList.vue') },
       { path: 'personnel-list', component: () => import('pages/PersonnelList.vue') },

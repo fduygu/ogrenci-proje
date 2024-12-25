@@ -38,6 +38,11 @@
           {{ props.row.phoneNumber1 }}
         </q-td>
       </template>
+      <template v-slot:body-cell-status="props">
+        <q-td :props="props">
+          {{ statusText(props.row.status) }}
+        </q-td>
+      </template>
       <template v-slot:body-cell-createdAt="props">
         <q-td :props="props">
           {{ formatDate(props.row.createdAt) }}
@@ -50,18 +55,6 @@
       <q-card style="width: 600px; max-width: 90vw">
         <q-card-section>
           <div v-if="selectedStudent">
-            <q-input
-              v-model="selectedStudent.name"
-              outlined
-              label="Ad"
-              dense
-            />
-            <q-input
-              v-model="selectedStudent.surname"
-              outlined
-              label="Soyad"
-              dense
-            />
             <q-select
               v-model="selectedStudent.vehicle"
               :options="vehicleOptions"
@@ -110,6 +103,7 @@ export default defineComponent({
       { name: 'surname', label: 'Soyad', field: 'surname', align: 'left' as const },
       { name: 'vehicle', label: 'Servis Kullanımı', field: 'vehicle', align: 'left' as const },
       { name: 'phoneNumber1', label: 'Telefon', field: 'phoneNumber1', align: 'left' as const },
+      { name: 'status', label: 'Durumu', field: 'status', align: 'left' as const },
       { name: 'createdAt', label: 'Kayıt Tarihi', field: 'createdAt', align: 'left' as const }
     ]
 
@@ -131,7 +125,14 @@ export default defineComponent({
       selectedStudent.value = { ...student }
       isPopupOpen.value = true
     }
-
+    const statusText = (status: string) => {
+      if (status === 'main') {
+        return 'Asıl Öğrenci'
+      } else if (status === 'waiting') {
+        return 'Sıradaki Öğrenci'
+      }
+      return 'Bilinmiyor'
+    }
     const updateStudent = async () => {
       if (selectedStudent.value) {
         try {
@@ -161,7 +162,8 @@ export default defineComponent({
       filteredStudents,
       showStudentDetails,
       updateStudent,
-      formatDate
+      formatDate,
+      statusText
     }
   }
 })

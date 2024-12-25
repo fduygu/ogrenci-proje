@@ -336,7 +336,8 @@ export default defineComponent({
     ]
     const statusOptions = [
       { label: 'Asıl Öğrenci', value: 'main' },
-      { label: 'Sıradaki Öğrenci', value: 'waiting' }
+      { label: 'Sıradaki Öğrenci', value: 'waiting' },
+      { label: 'Pasif', value: 'inactive' }
     ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
@@ -404,7 +405,14 @@ export default defineComponent({
       isDeleteDialogOpen.value = true
     }
     const statusText = (status: string) => {
-      return status === 'main' ? 'Asıl Öğrenci' : 'Sıradaki Öğrenci'
+      if (status === 'main') {
+        return 'Asıl Öğrenci'
+      } else if (status === 'waiting') {
+        return 'Sıradaki Öğrenci'
+      } else if (status === 'inactive') {
+        return 'Pasif'
+      }
+      return 'Bilinmiyor'
     }
     const deleteStudent = async () => {
       if (selectedStudent.value) {
