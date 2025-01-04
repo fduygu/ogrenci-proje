@@ -7,6 +7,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "moduleResolution": "node",
     "paths": {
       "@/*": ["src/*"],
       "pages/*": ["src/pages/*"],
