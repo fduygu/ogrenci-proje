@@ -95,6 +95,21 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+         <!-- Silme Onayı için Dialog -->
+         <q-dialog v-model="isDeleteDialogOpen">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Emin misiniz?</div>
+        </q-card-section>
+        <q-card-section>
+          Bu kaydı silmek istediğinize emin misiniz?
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="İptal" color="primary" @click="isDeleteDialogOpen = false" />
+          <q-btn flat label="Sil" color="negative" @click="deleteCellData" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -234,7 +249,31 @@ export default {
 
       this.isCellModalOpen = true
     },
+    // Silme işlemi öncesinde onay al
+    confirmDeleteCell () {
+      this.isDeleteDialogOpen = true
+    },
+    // Veriyi backend'den silme
+    async deleteCellData () {
+      if (this.activeCell) {
+        const { row, col } = this.activeCell
 
+        if (!row[col.name] || typeof row[col.name] !== 'object' || !row[col.name]._id) {
+          console.error('Silme işlemi için uygun bir veri bulunamadı:', row[col.name])
+          return
+        }
+
+        try {
+          await axios.delete(`http://localhost:3000/api/schedules/${row[col.name]._id}`)
+          this.fetchSchedules()
+          this.closeCellModal()
+        } catch (error) {
+          console.error('Silme hatası:', error)
+        } finally {
+          this.isDeleteDialogOpen = false
+        }
+      }
+    },
     // Modal kapama
     closeCellModal () {
       this.isCellModalOpen = false
