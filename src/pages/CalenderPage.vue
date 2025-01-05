@@ -12,6 +12,7 @@
         v-model="selectedPersonnel"
         :options="personnelOptions"
         label="Personel Seç"
+        style="width: 300px;"
         outlined
         dense
         @update:model-value="fetchSchedules"
@@ -365,7 +366,7 @@ export default {
           value: personnel._id
         }))
 
-        const studentResponse = await axios.get('http://localhost:3000/api/students')
+        const studentResponse = await axios.get('http://localhost:3000/api/students/active-students')
         this.studentOptions = studentResponse.data.map((student) => ({
           label: `${student.name} ${student.surname}`,
           value: student._id

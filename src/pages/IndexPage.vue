@@ -14,7 +14,7 @@
       <!-- Özel başlık düzeni -->
       <template v-slot:header>
         <tr>
-          <th class="text-center bg-grey-3">Seanslar</th>
+          <th class="text-center bg-grey-3">{{ currentMonth }}-Seanslar</th>
           <th
           class="text-left-uppercase bg-grey-3"
           v-for="personnel in personnelOptions"
@@ -58,6 +58,7 @@ import axios from 'axios'
 export default {
   data () {
     return {
+      currentMonth: '', // Bulunduğumuz ay
       personnelOptions: [],
       columns: [],
       rows: [],
@@ -66,11 +67,29 @@ export default {
     }
   },
   methods: {
-    // Haftanın günlerini getir
-    getDays () {
-      return ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma']
+    getMonthName (date) {
+      const monthNames = [
+        'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+        'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+      ]
+      return monthNames[date.getMonth()]
     },
+    // Haftanın günlerini ve tarihlerini getir
+    getDaysWithDates () {
+      const startDate = new Date() // Haftanın başlangıç tarihi
+      startDate.setDate(startDate.getDate() - startDate.getDay() + 1) // Pazartesiye ayarla
 
+      return ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'].map((day, index) => {
+        const currentDate = new Date(startDate)
+        currentDate.setDate(startDate.getDate() + index) // Tarihleri hesapla
+        const formattedDate = currentDate.toLocaleDateString('tr-TR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        })
+        return `${day} (${formattedDate})`
+      })
+    },
     // Verileri backend'den çek
     async fetchData () {
       try {
@@ -91,9 +110,10 @@ export default {
         ]
 
         // Satırları oluştur
-        const days = this.getDays()
+        const days = this.getDaysWithDates()
         const times = []
-        for (const day of days) {
+        for (const dayWithDate of days) {
+          const day = dayWithDate.split(' ')[0] // Gün bilgisini al
           for (let i = 8; i <= 18; i++) {
             const row = { day, time: `${i}:00` }
             this.personnelOptions.forEach((personnel) => {
@@ -114,9 +134,16 @@ export default {
             const schedule = this.schedules.find(
               (s) =>
                 s.time === row.time &&
-                s.personnelId === col.name &&
-                this.getDays()[new Date(s.date).getDay() - 1] === row.day
+        s.personnelId === col.name &&
+        // Haftanın gününe ek olarak saat kontrolü de yapılır
+        this.getDaysWithDates().find((d) => d.startsWith(row.day)) ===
+          `${row.day} (${new Date(s.date).toLocaleDateString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          })})`
             )
+            // Saat ve tarih uyumlu ise veriyi ekle, aksi takdirde 'Boş' bırak
             row[col.name] = schedule
               ? {
                   studentName: schedule.studentName,
@@ -124,13 +151,13 @@ export default {
                 }
               : 'Boş'
           })
-        })
-        // Gün separatorlarını ekle
+        }) // Gün separatorlarını ekle
         this.processedRows = []
         let currentDay = null
         this.rows.forEach((row) => {
           if (row.day !== currentDay) {
-            this.processedRows.push({ separator: true, day: row.day }) // Gün separatoru
+            const dayWithDate = days.find((d) => d.startsWith(row.day))
+            this.processedRows.push({ separator: true, day: dayWithDate }) // Gün ve tarih separatoru
             currentDay = row.day
           }
           this.processedRows.push(row) // Normal satır
@@ -142,6 +169,7 @@ export default {
   },
   mounted () {
     this.fetchData()
+    this.currentMonth = this.getMonthName(new Date()) // Mevcut ayı al
   }
 }
 </script>

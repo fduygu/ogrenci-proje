@@ -119,3 +119,13 @@ export const getStudentsWithService = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Servis kullanan öğrenciler alınırken hata oluştu', error })
   }
 }
+export const getActiveStudents = async (req: Request, res: Response) => {
+  try {
+    const activeStudents = await StudentService.getStudentsByFilter({ status: 'main' }) // Sadece "main" durumundaki öğrencileri getir
+    console.log('Bulunan aktif öğrenciler:', activeStudents)
+    res.status(200).json(activeStudents)
+  } catch (error) {
+    console.error('Hata:', error)
+    res.status(500).json({ message: 'Aktif öğrenciler alınırken hata oluştu', error })
+  }
+}

@@ -4,7 +4,8 @@ import {
   createStudent,
   updateStudent,
   deleteStudent,
-  getStudentsWithService
+  getStudentsWithService,
+  getActiveStudents
 } from '../controller/studentController'
 import ScheduleController from '../controller/scheduleController' // ScheduleController için import
 import upload from '../middleware/uploadMiddleware' // Fotoğraf yükleme middleware
@@ -18,9 +19,8 @@ router.post('/', upload.single('file'), createStudent)
 router.put('/:id', upload.single('file'), updateStudent)
 router.delete('/:id', deleteStudent)
 router.get('/students-with-service', (req, res, next) => {
-  console.log('GET /students-with-service çalıştı')
   next()
 }, getStudentsWithService)
 router.get('/:studentId/schedules', ScheduleController.getSchedulesByStudent)
-
+router.get('/active-students', getActiveStudents)
 export default router
