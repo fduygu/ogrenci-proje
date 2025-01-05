@@ -364,7 +364,6 @@ export default defineComponent({
     const fetchStudents = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/students')
-        console.log('Backend\'den Gelen Veriler:', response.data) // Backend'den gelen veriyi logla
         students.value = response.data
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)

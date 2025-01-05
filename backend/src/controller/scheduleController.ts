@@ -7,9 +7,6 @@ class ScheduleController {
   createSchedule = async (req: Request, res: Response): Promise<void> => {
     try {
       const { personnelId, studentId, date, time, note } = req.body
-
-      console.log('Gelen veri:', req.body)
-
       // Validate inputs
       if (!personnelId || !studentId || !date || !time) {
         res.status(400).json({ message: 'Eksik alanlar var!' })
@@ -36,7 +33,6 @@ class ScheduleController {
         res.status(404).json({ message: 'Öğrenci bulunamadı!' })
         return
       }
-      console.log('Öğrenciden Gelen vehicle:', student.vehicle) // Burayı loglayın
 
       // Create Schedule
       const scheduleData = {

@@ -113,16 +113,21 @@ export default {
       isCellModalOpen: false,
       isDeleteDialogOpen: false, // Silme onayı için dialog kontrolü
       activeCell: null,
-      columns: this.generateColumns(),
-      rows: this.generateTimeRows()
+      columns: [],
+      rows: []
     }
   },
   methods: {
     // Sütunları oluşturma
     generateColumns () {
+      if (!this.currentDate) {
+        console.error('currentDate undefined in generateColumns!')
+        this.currentDate = new Date() // Varsayılan olarak bugünün tarihini ayarla
+      }
+
       const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma']
-      const today = new Date()
-      const monday = new Date(today.setDate(today.getDate() - today.getDay() + 1))
+      const monday = this.getMonday(this.currentDate)
+
       return [
         { name: 'time', label: 'Saatler', align: 'center', field: 'time' },
         ...days.map((day, index) => {
@@ -131,15 +136,14 @@ export default {
           return {
             name: day.toLowerCase(),
             label: `${date.getFullYear()}-${(date.getMonth() + 1)
-              .toString()
-              .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} (${day})`,
+          .toString()
+          .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} (${day})`,
             align: 'center',
             field: day.toLowerCase()
           }
         })
       ]
     },
-
     // Satırları oluşturma
     generateTimeRows () {
       const times = []
@@ -158,11 +162,15 @@ export default {
 
     // Haftanın başlangıç tarihini al
     getMonday (date) {
+      if (!date) {
+        console.error('getMonday fonksiyonuna undefined bir tarih gönderildi.')
+        return new Date() // Varsayılan olarak bugünün tarihini döndür
+      }
+
       const day = date.getDay()
       const diff = day === 0 ? -6 : 1 - day
       return new Date(date.setDate(date.getDate() + diff))
     },
-
     // Planları backend'den çekme
     async fetchSchedules () {
       if (!this.selectedPersonnel) return
@@ -181,7 +189,6 @@ export default {
         })
 
         const schedules = response.data || []
-        console.log('Gelen Planlar:', schedules)
 
         this.rows.forEach((row) => {
           this.columns.slice(1).forEach((col) => {
@@ -202,8 +209,6 @@ export default {
               : 'Boş'
           })
         })
-
-        console.log('Rows after processing:', this.rows)
       } catch (error) {
         console.error('Planları çekme hatası:', error)
       }
@@ -269,15 +274,24 @@ export default {
 
     // Haftayı değiştir
     loadPreviousWeek () {
+      if (!this.currentDate) {
+        console.error('currentDate undefined!')
+        return
+      }
       this.currentDate.setDate(this.currentDate.getDate() - 7)
+      this.columns = this.generateColumns()
       this.fetchSchedules()
     },
 
     loadNextWeek () {
+      if (!this.currentDate) {
+        console.error('currentDate undefined!')
+        return
+      }
       this.currentDate.setDate(this.currentDate.getDate() + 7)
+      this.columns = this.generateColumns()
       this.fetchSchedules()
     },
-
     // Personel ve öğrenci verilerini çekme
     async fetchPersonnelAndStudents () {
       try {
@@ -298,6 +312,11 @@ export default {
     }
   },
   async mounted () {
+    if (!this.currentDate) {
+      this.currentDate = new Date() // Eğer currentDate yoksa bugünü ata
+    }
+    this.columns = this.generateColumns() // Sütunları oluştur
+    this.rows = this.generateTimeRows() // Satırları oluştur
     await this.fetchPersonnelAndStudents()
   }
 }

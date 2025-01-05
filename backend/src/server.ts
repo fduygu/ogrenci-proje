@@ -12,12 +12,6 @@ const PORT = 3000
 app.use(cors())
 app.use(bodyParser.json())
 
-// İstekleri Loglamak için Middleware
-app.use((req, res, next) => {
-  console.log(`Request received: ${req.method} ${req.path}`)
-  next()
-})
-
 // MongoDB bağlantısı
 mongoose
   .connect('mongodb://localhost:27017/engelsiz_yasam')
@@ -27,7 +21,6 @@ mongoose
 // Rotalar
 app.use('/api', router) // Burada rotaları kontrol edin
 
-console.log('Static folder path:', path.join(__dirname, '../uploads'))
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 // Sunucuyu başlat

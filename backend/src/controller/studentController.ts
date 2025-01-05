@@ -7,7 +7,6 @@ interface EducationItem {
 
 // Öğrenci oluşturma
 export const createStudent = async (req: Request, res: Response) => {
-  console.log('Gelen Veri:', req.body) // Gelen veriyi logla
   try {
     if (req.body.surname) {
       req.body.surname = req.body.surname.toUpperCase()
@@ -28,7 +27,6 @@ export const createStudent = async (req: Request, res: Response) => {
 
     // Öğrenci oluşturma servisini çağır
     const savedStudent = await StudentService.createStudent(studentData)
-    console.log('Kaydedilen Öğrenci:', savedStudent) // Kaydedilen veriyi logla
     res.status(201).json(savedStudent)
   } catch (error) {
     console.error('Veritabanına kaydedilirken hata:', error) // Hataları logla
@@ -110,9 +108,7 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
 }
 export const getStudentsWithService = async (req: Request, res: Response) => {
   try {
-    console.log('Servis kullanan öğrenciler için sorgu başlıyor...')
     const studentsWithService = await StudentService.getStudentsByFilter({ vehicle: 'Evet' })
-    console.log('Bulunan öğrenciler:', studentsWithService)
     res.status(200).json(studentsWithService)
   } catch (error) {
     console.error('Hata:', error)
@@ -122,7 +118,6 @@ export const getStudentsWithService = async (req: Request, res: Response) => {
 export const getActiveStudents = async (req: Request, res: Response) => {
   try {
     const activeStudents = await StudentService.getStudentsByFilter({ status: 'main' }) // Sadece "main" durumundaki öğrencileri getir
-    console.log('Bulunan aktif öğrenciler:', activeStudents)
     res.status(200).json(activeStudents)
   } catch (error) {
     console.error('Hata:', error)
