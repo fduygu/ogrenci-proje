@@ -188,29 +188,36 @@ export default {
     },
     // Planları backend'den çekme
     async fetchSchedules () {
-      if (!this.selectedPersonnel) return
+      if (!this.selectedPersonnel) {
+        console.error('Personel seçilmedi!')
+        return
+      }
+
+      const monday = this.getMonday(this.currentDate)
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
 
       try {
-        const monday = this.getMonday(this.currentDate)
-        const sunday = new Date(monday)
-        sunday.setDate(monday.getDate() + 6)
-
-        const response = await axios.get('http://localhost:3000/api/schedules', {
-          params: {
-            personnelId: this.selectedPersonnel.value,
-            startDate: monday.toISOString().split('T')[0],
-            endDate: sunday.toISOString().split('T')[0]
-          }
-        })
+        const response = await axios.get(
+      `http://localhost:3000/api/schedules/personnel/${this.selectedPersonnel.value}`,
+      {
+        params: {
+          startDate: monday.toISOString().split('T')[0],
+          endDate: sunday.toISOString().split('T')[0]
+        }
+      }
+        )
 
         const schedules = response.data || []
+        console.log('Gelen Planlar:', schedules)
 
+        // Tabloyu güncelle
         this.rows.forEach((row) => {
           this.columns.slice(1).forEach((col) => {
             const schedule = schedules.find(
               (s) =>
                 new Date(s.date).toISOString().split('T')[0] === col.label.split(' ')[0] &&
-                s.time === row.time
+            s.time === row.time
             )
 
             row[col.name] = schedule
@@ -228,7 +235,6 @@ export default {
         console.error('Planları çekme hatası:', error)
       }
     },
-
     // Modal açma
     openCellModal (row, col) {
       this.activeCell = { row, col }

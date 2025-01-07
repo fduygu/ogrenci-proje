@@ -333,7 +333,8 @@ export default defineComponent({
     ]
     const statusOptions = [
       { label: 'Asıl Öğrenci', value: 'main' },
-      { label: 'Sıradaki Öğrenci', value: 'waiting' }
+      { label: 'Sıradaki Öğrenci', value: 'waiting' },
+      { label: 'Pasif', value: 'inactive' }
     ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
@@ -405,7 +406,8 @@ export default defineComponent({
     }
     const statusMap: Record<string, string> = {
       main: 'Asıl Öğrenci',
-      waiting: 'Sıradaki Öğrenci'
+      waiting: 'Sıradaki Öğrenci',
+      inactive: 'Pasif'
     }
     const deleteStudent = async () => {
       if (selectedStudent.value) {

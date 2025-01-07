@@ -333,7 +333,8 @@ export default defineComponent({
     ]
     const statusOptions = [
       { label: 'Asıl Öğrenci', value: 'main' },
-      { label: 'Sıradaki Öğrenci', value: 'waiting' }
+      { label: 'Sıradaki Öğrenci', value: 'waiting' },
+      { label: 'Pasif', value: 'inactive' }
     ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },

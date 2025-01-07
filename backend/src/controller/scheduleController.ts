@@ -70,13 +70,38 @@ class ScheduleController {
   // Get Schedules by Personnel
   getSchedulesByPersonnel = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { personnelId } = req.query
+      console.log('Gelen req.params:', req.params)
+      console.log('Gelen req.query:', req.query)
+
+      const { personnelId } = req.params
+      const { startDate, endDate } = req.query
+
       if (!personnelId) {
         res.status(400).json({ message: 'Personel ID gerekli!' })
         return
       }
 
-      const schedules = await Schedule.find({ personnelId })
+      if (!startDate || !endDate) {
+        res.status(400).json({ message: 'Tarih aralığı gerekli!' })
+        return
+      }
+
+      const parsedStartDate = new Date(startDate as string)
+      const parsedEndDate = new Date(endDate as string)
+
+      if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
+        res.status(400).json({ message: 'Geçersiz tarih formatı!' })
+        return
+      }
+
+      const schedules = await Schedule.find({
+        personnelId,
+        date: {
+          $gte: parsedStartDate,
+          $lte: parsedEndDate
+        }
+      })
+
       res.status(200).json(schedules)
     } catch (error) {
       console.error('Planlar alınamadı:', error)
