@@ -1,13 +1,41 @@
 <template>
   <q-page>
-    <!-- Arama Alanı -->
-    <q-input
-      v-model="searchQuery"
-      outlined
-      label="Öğrenci Ara"
-      class="q-mb-md"
-      dense
-    />
+    <!-- Üst Araç Çubuğu -->
+    <div class="q-mb-md row items-center justify-between">
+      <q-btn
+        label="Yeni Kayıt"
+        color="primary"
+        icon="add"
+        @click="showModal = true"
+        class="col-auto"
+      />
+      <q-btn-dropdown
+        label="Filtrele"
+        color="secondary"
+        dense
+        flat
+        icon="filter_list"
+        class="col-auto"
+      >
+        <q-list>
+          <q-item clickable @click="applyFilter('')">
+            <q-item-section>Hepsi</q-item-section>
+          </q-item>
+          <q-item clickable @click="applyFilter('main')">
+            <q-item-section>Aktif Öğrenciler</q-item-section>
+          </q-item>
+          <q-item clickable @click="applyFilter('waiting')">
+            <q-item-section>Sıradaki Öğrenciler</q-item-section>
+          </q-item>
+          <q-item clickable @click="applyFilter('inactive')">
+            <q-item-section>Pasif Öğrenciler</q-item-section>
+          </q-item>
+          <q-item clickable @click="redirectToServicePage()">
+            <q-item-section>Servis Kullananlar</q-item-section>
+           </q-item>
+        </q-list>
+      </q-btn-dropdown>
+    </div>
 
     <!-- Öğrenci Tablosu -->
     <q-table
@@ -59,7 +87,23 @@
     <!-- Yükleniyor Göstergesi -->
     <q-spinner v-if="isLoading" />
 
-    <!-- Detay Popup -->
+    <!-- Yeni Kayıt Modalı -->
+    <q-dialog v-model="showModal" persistent>
+      <q-card class="q-pa-md" style="min-width: 600px; max-width: 90vw;">
+        <q-card-section>
+          <div class="text-h6">Yeni Öğrenci Kaydı</div>
+        </q-card-section>
+        <q-card-section>
+          <!-- StudentRegistration Bileşeni -->
+          <StudentRegistration @form-submitted="onStudentAdded" />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Kapat" color="secondary" @click="showModal = false" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Öğrenci Detayları (Popup) -->
     <q-dialog v-model="isPopupOpen">
       <q-card style="width: 600px; max-width: 90vw">
         <q-card-section class="row">
@@ -243,7 +287,6 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
     <!-- Silme Onayı Dialog -->
     <q-dialog v-model="isDeleteDialogOpen">
       <q-card>
@@ -263,35 +306,43 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
 import axios from 'axios'
 import { format } from 'date-fns'
+import StudentRegistration from './StudentRegistration.vue' // Yeni Kayıt bileşeni
+import { useRouter } from 'vue-router'
 
 interface Student {
   _id: string;
   name: string;
-  age:number;
+  age: number;
   surname: string;
   tcNumber: string;
   gender: string;
-  vehicle:string;
-  address:string;
-  parentinfo:string;
+  vehicle: string;
+  address: string;
+  parentinfo: string;
   education: string[];
   phoneNumber1: string;
   phoneNumber2: string;
   diagnosis: string;
-  createdAt: string; // Kayıt tarihi alanı
+  createdAt: string;
   imageUrl?: string;
-  blood:string;
-  status: 'main' | 'waiting';
+  blood: string;
+  status: 'main' | 'waiting' | 'inactive';
 }
+
 export default defineComponent({
   name: 'StudentList',
+  components: { StudentRegistration },
   setup () {
+    const router = useRouter()
     const students = ref<Student[]>([])
-    const searchQuery = ref('')
+    const filteredStudents = ref<Student[]>([])
+    const showModal = ref(false)
+    const isEditMode = ref(false)
     const isPopupOpen = ref(false)
+    const isDeleteDialogOpen = ref(false)
     const selectedStudent = ref<Student>({
       _id: '',
       name: '',
@@ -312,12 +363,6 @@ export default defineComponent({
       status: 'main'
     })
     const isLoading = ref(true)
-    const isEditMode = ref(false)
-    const isDeleteDialogOpen = ref(false)
-    const vehicleOptions = [
-      { label: 'Evet', value: 'Evet' },
-      { label: 'Hayır', value: 'Hayır' }
-    ]
     const bloodOptions = [
       { label: 'A+', value: 'A+' },
       { label: 'A-', value: 'A-' },
@@ -328,16 +373,20 @@ export default defineComponent({
       { label: '0+', value: '0+' },
       { label: '0-', value: '0-' }
     ]
+    const statusOptions = [
+      { label: 'Asıl Öğrenci', value: 'main' },
+      { label: 'Sıradaki Öğrenci', value: 'waiting' },
+      { label: 'Pasif', value: 'inactive' }
+    ]
+    const vehicleOptions = [
+      { label: 'Evet', value: 'Evet' },
+      { label: 'Hayır', value: 'Hayır' }
+    ]
     const educationOptions = [
       { label: 'Bireysel', value: 'Bireysel' },
       { label: 'Fizyoterapi', value: 'Fizyoterapi' },
       { label: 'Grup', value: 'Grup' },
       { label: 'Dil Konuşma', value: 'Dil Konuşma' }
-    ]
-    const statusOptions = [
-      { label: 'Asıl Öğrenci', value: 'main' },
-      { label: 'Sıradaki Öğrenci', value: 'waiting' },
-      { label: 'Pasif', value: 'inactive' }
     ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
@@ -352,30 +401,37 @@ export default defineComponent({
       return date ? format(new Date(date), 'dd/MM/yyyy HH:mm') : '-'
     }
 
-    const filteredStudents = computed(() =>
-      students.value.filter((student) =>
-        student.status === 'main' && // Yalnızca "main" olan öğrenciler
-        `${student.name} ${student.surname}`
-          .toLowerCase()
-          .includes(searchQuery.value.toLowerCase())
-      )
-    )
-
     const fetchStudents = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/students')
         students.value = response.data
+        filteredStudents.value = [...students.value] // Başlangıçta tüm öğrencileri göster
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
       } finally {
         isLoading.value = false
       }
     }
+
+    const applyFilter = (status: string) => {
+      filteredStudents.value = students.value.filter((student) =>
+        status ? student.status === status : true
+      )
+    }
+
+    const redirectToServicePage = () => {
+      router.push('/service-list') // Rota yolunu belirleyin
+    }
+
+    const onStudentAdded = () => {
+      showModal.value = false
+      fetchStudents()
+    }
+
     const showStudentDetails = (student: Student) => {
       selectedStudent.value = { ...student }
       isPopupOpen.value = true
     }
-
     const updateStudent = async () => {
       if (selectedStudent.value) {
         try {
@@ -433,32 +489,38 @@ export default defineComponent({
 
     return {
       students,
-      searchQuery,
-      columns,
       filteredStudents,
+      columns,
       formatDate,
+      showModal,
       isPopupOpen,
-      selectedStudent,
       isEditMode,
       isDeleteDialogOpen,
-      showStudentDetails,
+      selectedStudent,
+      isLoading,
+      applyFilter,
+      redirectToServicePage,
+      onStudentAdded,
+      statusText,
+      vehicleOptions,
+      bloodOptions,
+      educationOptions,
+      statusOptions,
+      deleteStudent,
       updateStudent,
       confirmDelete,
-      deleteStudent,
-      isLoading,
-      vehicleOptions,
-      educationOptions,
-      bloodOptions,
-      statusOptions,
-      statusText
+      showStudentDetails
     }
   }
 })
 </script>
+
 <style scoped>
-.student-details {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 8px 16px;
+.q-page {
+  padding: 16px;
+}
+
+.q-btn-dropdown {
+  max-width: 150px;
 }
 </style>

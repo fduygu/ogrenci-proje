@@ -18,4 +18,7 @@ router.delete('/:id', ScheduleController.deleteSchedule)
 router.get('/student/:studentId', ScheduleController.getSchedulesByStudent)
 
 router.get('/personnel/:personnelId', ScheduleController.getSchedulesByPersonnel)
+
+router.post('/copy-to-next-week', ScheduleController.copyScheduleToNextWeek)
+
 export default router

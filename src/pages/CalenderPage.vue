@@ -8,15 +8,24 @@
         label="Önceki Hafta"
         @click="loadPreviousWeek"
       />
-      <q-select
-        v-model="selectedPersonnel"
-        :options="personnelOptions"
-        label="Personel Seç"
-        style="width: 300px;"
-        outlined
-        dense
-        @update:model-value="fetchSchedules"
-      />
+      <div class="row items-center">
+        <q-select
+          v-model="selectedPersonnel"
+          :options="personnelOptions"
+          label="Personel Seç"
+          style="width: 300px;"
+          outlined
+          dense
+          @update:model-value="fetchSchedules"
+        />
+        <q-btn
+          flat
+          label="Planı Haftaya Kopyala"
+          color="primary"
+          class="q-ml-sm"
+          @click="copyScheduleToNextWeek"
+        />
+      </div>
       <q-btn
         flat
         icon="chevron_right"
@@ -185,6 +194,34 @@ export default {
       const day = date.getDay()
       const diff = day === 0 ? -6 : 1 - day
       return new Date(date.setDate(date.getDate() + diff))
+    },
+
+    async copyScheduleToNextWeek () {
+      if (!this.selectedPersonnel) {
+        this.$q.notify({ type: 'warning', message: 'Lütfen bir personel seçin!' })
+        return
+      }
+
+      try {
+        const monday = this.getMonday(this.currentDate)
+        const sunday = new Date(monday)
+        sunday.setDate(monday.getDate() + 6)
+
+        await axios.post(
+          'http://localhost:3000/api/schedules/copy-to-next-week',
+          {
+            personnelId: this.selectedPersonnel.value,
+            startDate: monday.toISOString().split('T')[0],
+            endDate: sunday.toISOString().split('T')[0]
+          }
+        )
+
+        this.$q.notify({ type: 'positive', message: 'Planlar başarıyla kopyalandı!' })
+        this.loadNextWeek()
+      } catch (error) {
+        console.error('Plan kopyalama hatası:', error)
+        this.$q.notify({ type: 'negative', message: 'Plan kopyalanırken bir hata oluştu.' })
+      }
     },
     // Planları backend'den çekme
     async fetchSchedules () {

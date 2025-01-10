@@ -17,16 +17,8 @@
     <q-drawer v-model="leftDrawerOpen" show-if-above side="left" bordered>
       <q-list class="menu-list">
         <q-item-section avatar>
-          <q-img src="/elogo.png" alt="E Logo" class="logo-img" />
+          <q-img src="/elogo.png" alt="E Logo" class="logo-img" style="cursor: pointer" @click="goToHome" />
         </q-item-section>
-        <q-item class="menu-item turquoise" clickable v-ripple to="/">
-          <q-item-section avatar>
-            <q-icon name="home" />
-          </q-item-section>
-          <q-item-section>
-            Ana Sayfa
-          </q-item-section>
-        </q-item>
         <q-expansion-item class="menu-item orange" icon="school" label="Öğrenciler" expand-separator default-open>
           <q-item clickable v-ripple to="/register">
             <q-item-section avatar>
@@ -80,10 +72,10 @@
           </q-item>
         </q-expansion-item>
 
-        <q-expansion-item class="menu-item purple" icon="school" label="Sınıflar" expand-separator default-open>
+        <q-expansion-item class="menu-item purple" icon="table_view" label="Sınıflar" expand-separator default-open>
           <q-item clickable v-ripple to="/classes">
             <q-item-section avatar>
-              <q-icon name="add_business" />
+              <q-icon name="table_view" />
             </q-item-section>
             <q-item-section>
               Sınıf Kaydı
@@ -143,10 +135,12 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'MainLayout',
   setup () {
+    const router = useRouter()
     const leftDrawerOpen = ref(false)
 
     const toggleLeftDrawer = () => {
@@ -156,11 +150,15 @@ export default defineComponent({
     const logout = () => {
       console.log('Çıkış yapıldı')
     }
+    const goToHome = () => {
+      router.push('/') // Ana sayfaya yönlendirme
+    }
 
     return {
       leftDrawerOpen,
       toggleLeftDrawer,
-      logout
+      logout,
+      goToHome
     }
   }
 })

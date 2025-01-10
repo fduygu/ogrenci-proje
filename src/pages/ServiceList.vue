@@ -1,5 +1,17 @@
 <template>
   <q-page>
+    <!-- Geri Butonu -->
+    <div class="row items-center q-mb-md">
+      <q-btn
+        flat
+        dense
+        icon="arrow_back"
+        label="Geri"
+        color="primary"
+        @click="goBack"
+      />
+    </div>
+
     <!-- Öğrenci Tablosu -->
     <q-table
       :rows="filteredStudents"
@@ -8,7 +20,7 @@
       flat
       bordered
     >
-    <template v-slot:body-cell-photo="props">
+      <template v-slot:body-cell-photo="props">
         <q-td :props="props">
           <q-avatar size="40px" rounded>
             <img v-if="props.row.imageUrl" :src="props.row.imageUrl" alt="Fotoğraf" />
@@ -76,6 +88,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router' // Vue Router kullanımı
 import axios from 'axios'
 import { format } from 'date-fns'
 
@@ -89,6 +102,7 @@ interface Student {
 export default defineComponent({
   name: 'ServiceList',
   setup () {
+    const router = useRouter() // Vue Router'ı tanımlıyoruz
     const students = ref<Student[]>([])
     const selectedStudent = ref<Student | null>(null)
     const isPopupOpen = ref(false)
@@ -110,6 +124,7 @@ export default defineComponent({
     const formatDate = (date: string | Date | undefined) => {
       return date ? format(new Date(date), 'dd/MM/yyyy HH:mm') : '-'
     }
+
     const fetchStudents = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/students/students-with-service')
@@ -125,6 +140,7 @@ export default defineComponent({
       selectedStudent.value = { ...student }
       isPopupOpen.value = true
     }
+
     const statusText = (status: string) => {
       if (status === 'main') {
         return 'Asıl Öğrenci'
@@ -133,6 +149,7 @@ export default defineComponent({
       }
       return 'Bilinmiyor'
     }
+
     const updateStudent = async () => {
       if (selectedStudent.value) {
         try {
@@ -151,6 +168,10 @@ export default defineComponent({
       }
     }
 
+    const goBack = () => {
+      router.push('/student-list') // Geri butonuna basıldığında yönlendir
+    }
+
     onMounted(fetchStudents)
 
     return {
@@ -163,24 +184,18 @@ export default defineComponent({
       showStudentDetails,
       updateStudent,
       formatDate,
-      statusText
+      statusText,
+      goBack // Geri fonksiyonunu ekledik
     }
   }
 })
 </script>
 
 <style scoped>
-/* Stilinizi buraya ekleyin */
-</style>
-
-<style scoped>
-.text-green {
-  color: #4caf50;
+.q-mb-md {
+  margin-bottom: 1rem;
 }
 .text-bold {
   font-weight: bold;
-}
-.q-mb-md {
-  margin-bottom: 1rem;
 }
 </style>

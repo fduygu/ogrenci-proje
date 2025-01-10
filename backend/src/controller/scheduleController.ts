@@ -4,6 +4,56 @@ import PersonnelModel from '../models/personnelModel'
 import StudentModel from '../models/studentModel'
 
 class ScheduleController {
+  // Planı Haftaya Kopyala
+  copyScheduleToNextWeek = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { personnelId, startDate, endDate } = req.body
+
+      if (!personnelId || !startDate || !endDate) {
+        res.status(400).json({ message: 'Personel ID ve tarih aralığı gerekli!' })
+        return
+      }
+
+      // Mevcut haftanın planlarını al
+      const schedules = await Schedule.find({
+        personnelId,
+        date: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        }
+      })
+
+      if (!schedules || schedules.length === 0) {
+        res.status(404).json({ message: 'Kopyalanacak plan bulunamadı!' })
+        return
+      }
+
+      // Yeni planlar oluştur (bir hafta ileriye kopyala)
+      const newSchedules = schedules.map((schedule) => {
+        const newDate = new Date(schedule.date)
+        newDate.setDate(newDate.getDate() + 7) // Tarihi bir hafta ileri taşı
+
+        return {
+          personnelId: schedule.personnelId,
+          personnelName: schedule.personnelName,
+          studentId: schedule.studentId,
+          studentName: schedule.studentName,
+          date: newDate,
+          time: schedule.time,
+          note: schedule.note
+        }
+      })
+
+      // Yeni planları veritabanına kaydet
+      await Schedule.insertMany(newSchedules)
+
+      res.status(201).json({ message: 'Planlar başarıyla bir sonraki haftaya kopyalandı!' })
+    } catch (error) {
+      console.error('Planlar kopyalanamadı:', error)
+      res.status(500).json({ message: 'Planlar kopyalanamadı!', error })
+    }
+  }
+
   createSchedule = async (req: Request, res: Response): Promise<void> => {
     try {
       const { personnelId, studentId, date, time, note } = req.body
