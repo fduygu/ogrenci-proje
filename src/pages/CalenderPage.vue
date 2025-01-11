@@ -7,6 +7,9 @@
         icon="chevron_left"
         label="Önceki Hafta"
         @click="loadPreviousWeek"
+        rounded
+        color="primary"
+        class="modern-btn"
       />
       <div class="row items-center">
         <q-select
@@ -16,13 +19,15 @@
           style="width: 300px;"
           outlined
           dense
+          rounded
           @update:model-value="fetchSchedules"
         />
         <q-btn
           flat
           label="Planı Haftaya Kopyala"
-          color="primary"
-          class="q-ml-sm"
+          color="blue"
+          rounded
+          class="q-ml-sm modern-btn"
           @click="copyScheduleToNextWeek"
         />
       </div>
@@ -31,6 +36,9 @@
         icon="chevron_right"
         label="Sonraki Hafta"
         @click="loadNextWeek"
+        rounded
+        color="primary"
+        class="modern-btn"
       />
     </div>
     <!-- Tablo -->
@@ -405,6 +413,45 @@ export default {
 </script>
 
 <style scoped>
+/* Modern Buton Stilleri */
+.modern-btn {
+  transition: all 0.3s ease;
+  background-color: transparent;
+  border: 1px solid #2196f3; /* Çerçeve rengi */
+  color: #2196f3;
+  box-shadow: none;
+}
+
+.modern-btn:hover {
+  background-color: rgba(33, 150, 243, 0.1); /* Hover sırasında hafif bir arka plan */
+  color: #1976d2;
+}
+
+/* Tablo için Modern Hücre Stilleri */
+.modern-table {
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.modern-cell {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.modern-cell:hover {
+  background-color: #f5f5f5;
+}
+
+/* Modern İkon Stilleri */
+.modern-icon {
+  color: #2196f3;
+  transition: color 0.3s ease;
+}
+
+.modern-icon:hover {
+  color: #1976d2;
+}
 .q-page {
   padding: 20px;
 }

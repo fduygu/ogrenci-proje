@@ -1,13 +1,22 @@
 <template>
   <q-page>
-    <!-- Arama Alanı -->
-    <q-input
-      v-model="searchQuery"
-      outlined
-      label="Sınıf Ara"
-      class="q-mb-md"
-      dense
-    />
+    <!-- Üst Araç Çubuğu -->
+    <div class="q-mb-md row items-center justify-between">
+      <q-btn
+        label="Yeni Kayıt"
+        color="primary"
+        icon="add"
+        @click="showModal = true"
+        class="col-auto"
+      />
+      <q-input
+        v-model="searchQuery"
+        outlined
+        label="Sınıf Ara"
+        dense
+        class="col"
+      />
+    </div>
 
     <!-- Sınıf Tablosu -->
     <q-table
@@ -30,63 +39,102 @@
     <!-- Yükleniyor Göstergesi -->
     <q-spinner v-if="isLoading" />
 
-    <!-- Detay Popup -->
-    <q-dialog v-model="isPopupOpen">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Sınıf Detayları</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section v-if="selectedClass">
-          <q-form @submit.prevent="updateClass">
-            <q-input
-              v-model="selectedClass.className"
-              label="Sınıf Adı"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedClass.classroomNumber"
-              label="Sınıf Numarası"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-            <q-input
-              v-model="selectedClass.capacity"
-              label="Kapasite"
-              outlined
-              dense
-              :readonly="!isEditMode"
-            />
-          </q-form>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn
-            flat
-            label="Düzenle"
-            color="green"
-            @click="isEditMode = true"
-            v-if="!isEditMode"
-          />
-          <q-btn
-            flat
-            label="Kaydet"
-            color="blue"
-            @click="updateClass"
-            v-if="isEditMode"
-          />
-          <q-btn
-            flat
-            label="Sil"
-            color="red"
-            @click="confirmDelete"
-          />
-          <q-btn flat label="Kapat" @click="isPopupOpen = false" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <!-- Yeni Kayıt Modalı -->
+    <q-dialog v-model="showModal" persistent>
+  <q-card class="q-pa-md q-card-styled">
+        <!-- Sağ Üstte Kapat Butonu -->
+        <q-btn
+      flat
+      dense
+      icon="close"
+      color="white"
+      class="close-btn"
+      @click="showModal = false"
+    />
+    <q-card-section>
+      <div class="text-h6 text-center">YENİ SINIF KAYIT İSLEMİ</div>
+    </q-card-section>
+    <q-card-section>
+      <!-- ClassPage Bileşeni -->
+      <ClassPage @class-saved="onClassAdded" />
+    </q-card-section>
+  </q-card>
+</q-dialog>
+<!-- Detay Popup -->
+<q-dialog v-model="isPopupOpen">
+  <q-card class="q-pa-md q-card-styled">
+    <!-- Sağ Üstte Kapat Butonu -->
+    <q-btn
+      flat
+      dense
+      icon="close"
+      color="white"
+      class="close-btn"
+      @click="isPopupOpen = false"
+    />
+    <q-card-section>
+      <div class="text-h6 text-center">Sınıf Detayları</div>
+    </q-card-section>
+    <q-separator />
+    <q-card-section v-if="selectedClass">
+  <q-form @submit.prevent="updateClass">
+    <div class="row items-center q-mb-md">
+      <div class="col-4 text-bold">Sınıf Adı:</div>
+      <div class="col-8">
+        <q-input
+          v-model="selectedClass.className"
+          dense
+          :readonly="!isEditMode"
+        />
+      </div>
+    </div>
+    <div class="row items-center q-mb-md">
+      <div class="col-4 text-bold">Sınıf Numarası:</div>
+      <div class="col-8">
+        <q-input
+          v-model="selectedClass.classroomNumber"
+          dense
+          :readonly="!isEditMode"
+        />
+      </div>
+    </div>
+    <div class="row items-center">
+      <div class="col-4 text-bold">Kapasite:</div>
+      <div class="col-8">
+        <q-input
+          v-model="selectedClass.capacity"
+          dense
+          :readonly="!isEditMode"
+        />
+      </div>
+    </div>
+  </q-form>
+</q-card-section>
+    <q-card-actions align="right">
+      <q-btn
+        flat
+        label="Düzenle"
+        color="primary"
+        @click="isEditMode = true"
+        v-if="!isEditMode"
+      />
+      <q-btn
+        flat
+        label="Kaydet"
+        color="positive"
+        @click="updateClass"
+        v-if="isEditMode"
+      />
+      <q-btn
+        flat
+        label="Sil"
+        color="negative"
+        @click="confirmDelete"
+      />
+      <q-btn flat label="Kapat" @click="isPopupOpen = false" />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
 
     <!-- Silme Onayı Dialog -->
     <q-dialog v-model="isDeleteDialogOpen">
@@ -109,6 +157,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import ClassPage from './ClassPage.vue' // Yeni kayıt bileşeni
 
 interface Class {
   _id: string;
@@ -119,9 +168,11 @@ interface Class {
 
 export default defineComponent({
   name: 'ClassroomPage',
+  components: { ClassPage },
   setup () {
     const classes = ref<Class[]>([])
     const searchQuery = ref('')
+    const showModal = ref(false)
     const isPopupOpen = ref(false)
     const selectedClass = ref<Class | null>(null)
     const isLoading = ref(true)
@@ -158,6 +209,12 @@ export default defineComponent({
     const showClassDetails = (classItem: Class) => {
       selectedClass.value = { ...classItem }
       isPopupOpen.value = true
+    }
+
+    // Yeni Sınıf Eklendiğinde Listeyi Güncelle
+    const onClassAdded = () => {
+      showModal.value = false
+      fetchClasses()
     }
 
     // Sınıfı Güncelle
@@ -203,11 +260,13 @@ export default defineComponent({
       searchQuery,
       columns,
       filteredClasses,
+      showModal,
       isPopupOpen,
       selectedClass,
       isEditMode,
       isDeleteDialogOpen,
       showClassDetails,
+      onClassAdded,
       updateClass,
       confirmDelete,
       deleteClass,
@@ -218,21 +277,65 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.q-page {
-  padding: 20px;
+.text-bold {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.q-card-section .row {
+  align-items: center;
+}
+.q-input {
+  width: 100%;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.q-input.readonly {
+  background-color: #e0e0e0; /* Okuma modunda arka plan rengi */
+  cursor: default;
+}
+.q-card-styled {
+  width: 100%;
+  max-width: 700px; /* Modal genişliği */
+  margin: auto;
+  overflow: hidden; /* Fazladan boşluğu kaldırır */
 }
 
 .q-dialog {
-  max-width: 80vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .q-card {
   width: 100%;
-  max-width: 600px;
+  max-width: 800px; /* Modal genişliğini artırdık */
+  max-height: 90vh; /* Modalın ekran yüksekliğine sığmasını sağlar */
+  overflow-y: auto; /* Uzun içerikler için kaydırma çubuğu ekler */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Görsellik için gölge */
+  border-radius: 8px; /* Köşeleri yuvarlar */
+  padding: 16px; /* İç boşluk ekler */
+}
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10; /* Üstte görünmesini sağlar */
+  width: 36px; /* Tıklama alanını genişletir */
+  height: 36px; /* Tıklama alanını genişletir */
+  background-color: red; /* Arka plan rengi */
+  color: white; /* İkon rengi */
+  border-radius: 50%; /* Yuvarlak görünüm */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Hafif bir gölge */
+  transition: background-color 0.3s ease; /* Hover animasyonu */
 }
 
-.q-spinner {
-  display: block;
-  margin: 20px auto;
+.close-btn:hover {
+  background-color: darkred; /* Hover sırasında arka plan rengi */
 }
 </style>

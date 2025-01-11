@@ -90,16 +90,22 @@
     <!-- Yeni Kayıt Modalı -->
     <q-dialog v-model="showModal" persistent>
       <q-card class="q-pa-md" style="min-width: 600px; max-width: 90vw;">
+      <!-- Sağ Üstte Kapat Butonu -->
+        <q-btn
+         flat
+         dense
+         icon="close"
+         color="white"
+        class="close-btn"
+        @click="showModal = false"
+       />
         <q-card-section>
-          <div class="text-h6">Yeni Öğrenci Kaydı</div>
+          <div class="text-h6 text-center">YENİ ÖĞRENCİ KAYIT İSLEMİ</div>
         </q-card-section>
         <q-card-section>
           <!-- StudentRegistration Bileşeni -->
           <StudentRegistration @form-submitted="onStudentAdded" />
         </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Kapat" color="secondary" @click="showModal = false" />
-        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -446,6 +452,7 @@ export default defineComponent({
           )
           if (index !== -1) {
             students.value[index] = { ...selectedStudent.value }
+            filteredStudents.value = [...students.value]
           }
 
           isPopupOpen.value = false
@@ -522,5 +529,25 @@ export default defineComponent({
 
 .q-btn-dropdown {
   max-width: 150px;
+}
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10; /* Üstte görünmesini sağlar */
+  width: 36px; /* Tıklama alanı genişliği */
+  height: 36px; /* Tıklama alanı yüksekliği */
+  background-color: red; /* Kırmızı arka plan */
+  color: white; /* İkon rengi */
+  border-radius: 50%; /* Yuvarlak görünüm */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Hafif gölge */
+  transition: background-color 0.3s ease; /* Hover animasyonu */
+}
+
+.close-btn:hover {
+  background-color: darkred; /* Hover sırasında koyu kırmızı */
 }
 </style>

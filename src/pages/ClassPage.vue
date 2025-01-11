@@ -1,33 +1,42 @@
 <template>
-  <q-page padding>
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">Sınıf Ekle</div>
-      </q-card-section>
+  <q-page class="q-pa-md q-page-styled">
+    <q-form @submit.prevent="saveClass" class="q-gutter-md q-form-styled">
+      <!-- Başlık -->
+      <div class="text-h6 text-center q-mb-md">Sınıf Ekle</div>
 
-      <q-card-section>
-        <q-input
-          v-model="className"
-          label="Sınıf Adı"
-        />
-        <q-input
-          v-model="classroomNumber"
-          label="Sınıf Numarası"
-          type="text"
-        />
-        <q-input
-          v-model="capacity"
-          label="Kapasite"
-          type="number"
-        />
-      </q-card-section>
+      <!-- Form Alanları -->
+      <q-input
+        v-model="className"
+        label="Sınıf Adı"
+        outlined
+        dense
+        required
+      />
+      <q-input
+        v-model="classroomNumber"
+        label="Sınıf Numarası"
+        outlined
+        dense
+        required
+      />
+      <q-input
+        v-model="capacity"
+        label="Kapasite"
+        outlined
+        dense
+        type="number"
+        required
+      />
 
-      <q-card-actions align="right">
-        <q-btn flat label="Kaydet" @click="saveClass"  primary/>
-      </q-card-actions>
-    </q-card>
+      <!-- Butonlar -->
+      <div class="q-mt-md row justify-end">
+        <q-btn label="Kaydet" type="submit" color="primary" />
+        <q-btn label="Sıfırla" type="reset" color="secondary" class="q-ml-sm" @click="resetForm" />
+      </div>
+    </q-form>
 
-    <div v-if="successMessage" class="q-mt-md text-green text-bold">
+    <!-- Başarı Mesajı -->
+    <div v-if="successMessage" class="q-mt-md text-green text-bold text-center">
       {{ successMessage }}
     </div>
   </q-page>
@@ -58,15 +67,9 @@ export default {
           capacity: capacity.value
         })
 
-        // Başarı mesajını göster
         successMessage.value = 'Sınıf başarıyla kaydedildi!'
+        resetForm()
 
-        // Alanları temizle
-        className.value = ''
-        classroomNumber.value = ''
-        capacity.value = null
-
-        // Mesajı 3 saniye sonra kaldır
         setTimeout(() => {
           successMessage.value = ''
         }, 3000)
@@ -76,11 +79,18 @@ export default {
       }
     }
 
+    const resetForm = () => {
+      className.value = ''
+      classroomNumber.value = ''
+      capacity.value = null
+    }
+
     return {
       className,
       classroomNumber,
       capacity,
       saveClass,
+      resetForm,
       successMessage
     }
   }
@@ -88,11 +98,31 @@ export default {
 </script>
 
 <style scoped>
+.q-page-styled {
+  max-width: 600px;
+  margin: auto;
+  padding: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.q-form-styled {
+  background-color: #f9f9f9;
+  border: 4px solid #2196F3; /* Mavi çerçeve */
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.q-form-styled > .q-btn {
+  margin-right: 1rem;
+}
+
 .text-green {
-  color: #4caf50 /* Quasar'ın yeşil tonu */
+  color: #4caf50; /* Quasar'ın yeşil tonu */
 }
 
 .text-bold {
-  font-weight: bold
+  font-weight: bold;
 }
 </style>

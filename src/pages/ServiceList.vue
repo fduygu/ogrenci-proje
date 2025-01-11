@@ -161,6 +161,7 @@ export default defineComponent({
           if (index !== -1) {
             students.value[index] = { ...selectedStudent.value }
           }
+          await fetchStudents()
           isPopupOpen.value = false
         } catch (error) {
           console.error('Öğrenci güncellenirken hata oluştu:', error)

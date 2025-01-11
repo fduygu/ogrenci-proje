@@ -1,13 +1,22 @@
 <template>
   <q-page>
-    <!-- Arama Alanı -->
-    <q-input
-      v-model="searchQuery"
-      outlined
-      label="Personel Ara"
-      class="q-mb-md"
-      dense
-    />
+    <!-- Üst Araç Çubuğu -->
+    <div class="q-mb-md row items-center justify-between">
+      <q-btn
+        label="Yeni Kayıt"
+        color="primary"
+        icon="add"
+        @click="showModal = true"
+        class="col-auto"
+      />
+      <q-input
+        v-model="searchQuery"
+        outlined
+        label="Personel Ara"
+        dense
+        class="col"
+      />
+    </div>
 
     <!-- Personel Tablosu -->
     <q-table
@@ -56,6 +65,27 @@
 
     <!-- Yükleniyor Göstergesi -->
     <q-spinner v-if="isLoading" />
+        <!-- Yeni Kayıt Modalı -->
+        <q-dialog v-model="showModal" persistent>
+          <q-card class="q-pa-md q-card-styled">
+       <!-- Sağ Üstte Kapat Butonu -->
+      <q-btn
+        flat
+        dense
+        icon="close"
+        color="white"
+        class="close-btn"
+        @click="showModal = false"
+       />
+        <q-card-section>
+          <div class="text-h6 text-center">YENİ PERSONEL KAYIT İSLEMİ</div>
+        </q-card-section>
+        <q-card-section>
+          <!-- PersonnelRegistration Bileşeni -->
+          <PersonnelRegistration @form-submitted="onPersonnelAdded" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
     <!-- Detay Popup -->
     <q-dialog v-model="isPopupOpen">
@@ -194,6 +224,7 @@
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { format } from 'date-fns'
+import PersonnelRegistration from './PersonnelRegistration.vue' // Yeni kayıt bileşeni
 
 interface Personnel {
   _id: string;
@@ -210,9 +241,11 @@ interface Personnel {
 
 export default defineComponent({
   name: 'PersonnelList',
+  components: { PersonnelRegistration },
   setup () {
     const personnel = ref<Personnel[]>([])
     const searchQuery = ref('')
+    const showModal = ref(false)
     const isPopupOpen = ref(false)
     const selectedPersonnel = ref<Personnel>({
       _id: '',
@@ -260,7 +293,10 @@ export default defineComponent({
         isLoading.value = false
       }
     }
-
+    const onPersonnelAdded = () => {
+      showModal.value = false
+      fetchPersonnel()
+    }
     const showPersonnelDetails = (person: Personnel) => {
       console.log('Seçilen Personel:', person)
       selectedPersonnel.value = { ...person }
@@ -313,10 +349,12 @@ export default defineComponent({
       searchQuery,
       columns,
       filteredPersonnel,
+      showModal,
       isPopupOpen,
       selectedPersonnel,
       isEditMode,
       isDeleteDialogOpen,
+      onPersonnelAdded,
       formatDate,
       showPersonnelDetails,
       updatePersonnel,
@@ -342,5 +380,25 @@ export default defineComponent({
 .q-spinner {
   display: block;
   margin: 20px auto;
+}
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10; /* Üstte görünmesini sağlar */
+  width: 36px; /* Tıklama alanı genişliği */
+  height: 36px; /* Tıklama alanı yüksekliği */
+  background-color: red; /* Kırmızı arka plan */
+  color: white; /* İkon rengi */
+  border-radius: 50%; /* Yuvarlak görünüm */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Hafif gölge */
+  transition: background-color 0.3s ease; /* Hover animasyonu */
+}
+
+.close-btn:hover {
+  background-color: darkred; /* Hover sırasında koyu kırmızı */
 }
 </style>
