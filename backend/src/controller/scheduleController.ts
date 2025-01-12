@@ -29,21 +29,24 @@ class ScheduleController {
       }
 
       // Yeni planlar oluştur (bir hafta ileriye kopyala)
-      const newSchedules = schedules.map((schedule) => {
-        const newDate = new Date(schedule.date)
-        newDate.setDate(newDate.getDate() + 7) // Tarihi bir hafta ileri taşı
-
-        return {
-          personnelId: schedule.personnelId,
-          personnelName: schedule.personnelName,
-          studentId: schedule.studentId,
-          studentName: schedule.studentName,
-          date: newDate,
-          time: schedule.time,
-          note: schedule.note
-        }
-      })
-
+      const newSchedules = await Promise.all(
+        schedules.map(async (schedule) => {
+          const newDate = new Date(schedule.date)
+          newDate.setDate(newDate.getDate() + 7)
+          const student = await StudentModel.findById(schedule.studentId)
+          const studentVehicle = student?.vehicle || 'Hayır'
+          return {
+            personnelId: schedule.personnelId,
+            personnelName: schedule.personnelName,
+            studentId: schedule.studentId,
+            studentName: schedule.studentName,
+            studentVehicle, // Servis bilgisi
+            date: newDate,
+            time: schedule.time,
+            note: schedule.note
+          }
+        })
+      )
       // Yeni planları veritabanına kaydet
       await Schedule.insertMany(newSchedules)
 
@@ -91,7 +94,7 @@ class ScheduleController {
         studentId,
         studentName: `${student.name} ${student.surname}`,
         date: formattedDate,
-        studentVehicle: student.vehicle || 'Hayır', // Öğrenci servis bilgisi
+        studentVehicle: student?.vehicle || 'Hayır', // Eğer `vehicle` bilgisi yoksa varsayılan olarak 'Hayır'
         time,
         note
       }
@@ -120,9 +123,6 @@ class ScheduleController {
   // Get Schedules by Personnel
   getSchedulesByPersonnel = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log('Gelen req.params:', req.params)
-      console.log('Gelen req.query:', req.query)
-
       const { personnelId } = req.params
       const { startDate, endDate } = req.query
 

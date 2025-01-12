@@ -25,7 +25,7 @@
         <q-btn
           flat
           label="Planı Haftaya Kopyala"
-          color="blue"
+          color="primary"
           rounded
           class="q-ml-sm modern-btn"
           @click="copyScheduleToNextWeek"
@@ -254,8 +254,6 @@ export default {
         )
 
         const schedules = response.data || []
-        console.log('Gelen Planlar:', schedules)
-
         // Tabloyu güncelle
         this.rows.forEach((row) => {
           this.columns.slice(1).forEach((col) => {
@@ -264,13 +262,13 @@ export default {
                 new Date(s.date).toISOString().split('T')[0] === col.label.split(' ')[0] &&
             s.time === row.time
             )
-
             row[col.name] = schedule
               ? {
                   _id: schedule._id,
                   personnelId: schedule.personnelId,
                   personnelName: schedule.personnelName,
                   studentName: schedule.studentName,
+                  isVehicle: schedule.studentVehicle === 'Evet', // Burada kontrol
                   note: schedule.note || ''
                 }
               : 'Boş'
@@ -413,51 +411,27 @@ export default {
 </script>
 
 <style scoped>
-/* Modern Buton Stilleri */
-.modern-btn {
-  transition: all 0.3s ease;
-  background-color: transparent;
-  border: 1px solid #2196f3; /* Çerçeve rengi */
-  color: #2196f3;
-  box-shadow: none;
-}
-
-.modern-btn:hover {
-  background-color: rgba(33, 150, 243, 0.1); /* Hover sırasında hafif bir arka plan */
-  color: #1976d2;
-}
-
-/* Tablo için Modern Hücre Stilleri */
-.modern-table {
-  border-collapse: collapse;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.modern-cell {
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.modern-cell:hover {
-  background-color: #f5f5f5;
-}
-
-/* Modern İkon Stilleri */
-.modern-icon {
-  color: #2196f3;
-  transition: color 0.3s ease;
-}
-
-.modern-icon:hover {
-  color: #1976d2;
-}
 .q-page {
   padding: 20px;
 }
 .bg-green {
   background-color: #c8e6c9; /* Açık yeşil */
-  color: #2e7d32; /* Daha koyu yeşil yazı */
+  color: #000000; /* Daha koyu yeşil yazı */
   font-weight: bold;
+}
+.q-select {
+  border-radius: 50px; /* Kenarları yuvarlatır */
+}
+.modern-btn {
+  transition: all 0.3s ease;
+  background-color: transparent;
+  border: 1px solid #2196f3; /* Çerçeve rengi */
+  color: #2196f3;
+  border-radius: 8px;
+}
+
+.modern-btn:hover {
+  background-color: rgba(33, 150, 243, 0.1); /* Hover sırasında arka plan */
+  color: #1976d2;
 }
 </style>

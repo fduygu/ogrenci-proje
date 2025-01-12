@@ -3,11 +3,8 @@
     <q-header elevated>
       <q-toolbar>
         <q-btn flat dense round @click="toggleLeftDrawer" icon="menu" />
-        <q-avatar>
-          <img src="/unilogo.png" alt="Uni Logo" style="width: 40px; height: 40px;" />
-        </q-avatar>
         <q-toolbar-title>
-          Engelsiz Yaşam Merkezi
+          ENGELSİZ YASAM ALANI
         </q-toolbar-title>
         <q-space />
         <q-btn flat dense round icon="logout" label="Çıkış" class="logout-btn" @click="logout" />
@@ -39,7 +36,7 @@
         </q-item>
         <q-item class="menu-item purple" clickable v-ripple to="/classes-list">
           <q-item-section avatar>
-            <q-icon name="table_view" />
+            <q-icon name="class" />
           </q-item-section>
           <q-item-section>
             Sınıflar
