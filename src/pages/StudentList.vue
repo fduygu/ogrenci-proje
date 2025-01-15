@@ -11,7 +11,7 @@
       />
       <q-btn-dropdown
         label="Filtrele"
-        color="secondary"
+        color="primary"
         dense
         flat
         icon="filter_list"

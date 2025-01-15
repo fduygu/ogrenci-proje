@@ -10,6 +10,9 @@
       flat
       dense
       class="q-mt-md  bordered-table"
+      v-model:pagination="pagination"
+      :rows-per-page-options="[0]"
+      hide-bottom
     >
       <!-- Özel başlık düzeni -->
       <template v-slot:header>
@@ -27,27 +30,34 @@
 
       <!-- Gövde hücreleri -->
       <template v-slot:body="props">
-        <tr v-if="props.row.separator" class="day-separator">
-          <td colspan="100%" class="text-center bg-light-blue text-bold">
-            {{ props.row.day }}
-          </td>
-        </tr>
-        <tr v-else>
-          <!-- Seans bilgisi -->
-          <q-td>{{ props.row.time }}</q-td>
-          <!-- Plan bilgisi -->
-          <q-td
-           v-for="personnel in personnelOptions"
-           :key="personnel._id"
-           :class="['with-border', { 'bg-green': props.row[personnel._id]?.isVehicle }]"
-           >
-            <span v-if="props.row[personnel._id] !== 'Boş'">
-              {{ props.row[personnel._id]?.studentName || 'Boş' }}
-            </span>
-            <span v-else class="text-grey">Boş</span>
-          </q-td>
-        </tr>
+  <tr v-if="props.row.separator" class="day-separator">
+    <td colspan="100%" class="text-center bg-light-blue text-bold">
+      {{ props.row.day }}
+    </td>
+  </tr>
+  <tr v-else>
+    <q-td>{{ props.row.time }}</q-td>
+    <q-td
+      v-for="personnel in personnelOptions"
+      :key="personnel._id"
+      :class="['with-border', { 'bg-green': props.row[personnel._id]?.isVehicle }]">
+      {{ console.log('isVehicle:', props.row[personnel._id]?.isVehicle) }}
+      <template v-if="props.row[personnel._id] !== 'Boş'">
+        <span
+          v-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length > 1">
+        GRUP ÇALIŞMASI
+        </span>
+        <span
+          v-else-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length === 1">
+          {{ props.row[personnel._id]?.studentNames[0] }}
+        </span>
+        <span v-else>Boş</span>
       </template>
+      <template v-else>Boş</template>
+    </q-td>
+  </tr>
+</template>
+
     </q-table>
   </q-page>
 </template>
@@ -63,7 +73,8 @@ export default {
       columns: [],
       rows: [],
       schedules: [],
-      processedRows: [] // Gün separatorlarıyla birlikte işlenmiş satırlar
+      processedRows: [], // Gün separatorlarıyla birlikte işlenmiş satırlar
+      pagination: { rowsPerPage: 0 } // Varsayılan olarak tüm verileri göster
     }
   },
   methods: {
@@ -111,11 +122,12 @@ export default {
 
         // Satırları oluştur
         const days = this.getDaysWithDates()
+        const timeSlots = ['9:00', '10:00', '11:00', '12:00', '13:30', '14:30', '15:30', '16:30']
         const times = []
         for (const dayWithDate of days) {
           const day = dayWithDate.split(' ')[0] // Gün bilgisini al
-          for (let i = 8; i <= 18; i++) {
-            const row = { day, time: `${i}:00` }
+          for (const time of timeSlots) {
+            const row = { day, time }
             this.personnelOptions.forEach((personnel) => {
               row[personnel._id] = 'Boş'
             })
@@ -146,7 +158,7 @@ export default {
             // Saat ve tarih uyumlu ise veriyi ekle, aksi takdirde 'Boş' bırak
             row[col.name] = schedule
               ? {
-                  studentName: schedule.studentName,
+                  studentNames: schedule.studentNames || [],
                   isVehicle: schedule.studentVehicle === 'Evet' // Servis bilgisi kontrolü
                 }
               : 'Boş'

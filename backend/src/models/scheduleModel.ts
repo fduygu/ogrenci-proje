@@ -4,8 +4,8 @@ import mongoose, { Document } from 'mongoose'
 export interface ISchedule extends Document {
   personnelId: string;
   personnelName: string;
-  studentId: string;
-  studentName: string;
+  studentIds: string;
+  studentNames: string;
   studentVehicle: string; // Servis bilgisi alanı
   date: Date;
   time: string;
@@ -16,8 +16,8 @@ export interface ISchedule extends Document {
 const scheduleSchema = new mongoose.Schema({
   personnelId: { type: String, required: true },
   personnelName: { type: String, required: true },
-  studentId: { type: String, required: true },
-  studentName: { type: String, required: true },
+  studentIds: { type: [String], required: true }, // Birden fazla öğrenci
+  studentNames: { type: [String], required: true }, // Öğrenci adları listesi
   studentVehicle: { type: String, enum: ['Evet', 'Hayır'], default: 'Hayır' }, // Servis bilgisi
   date: { type: Date, required: true },
   time: { type: String, required: true },

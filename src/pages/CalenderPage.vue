@@ -48,6 +48,9 @@
       flat
       dense
       class="q-mt-md"
+      v-model:pagination="pagination"
+      :rows-per-page-options="[0]"
+      hide-bottom
     >
       <template v-slot:body-cell="props">
         <q-td
@@ -66,10 +69,16 @@
               class="cursor-pointer"
               @click="openCellModal(props.row, props.col)"
             />
-            <div v-if="props.row[props.col.name] && typeof props.row[props.col.name] === 'object'">
-              {{ props.row[props.col.name].studentName || 'Boş' }}
+            <!-- Öğrenci kontrolü ve GRUP göstergesi -->
+            <div v-if="Array.isArray(props.row[props.col.name]?.studentNames) && props.row[props.col.name]?.studentNames.length > 1">
+              GRUP
             </div>
-            <div v-else>Boş</div>
+            <div v-else-if="Array.isArray(props.row[props.col.name]?.studentNames) && props.row[props.col.name]?.studentNames.length === 1">
+              {{ props.row[props.col.name]?.studentNames[0] }}
+            </div>
+            <div v-else>
+              Boş
+            </div>
           </div>
         </q-td>
       </template>
@@ -87,14 +96,20 @@
             <p><strong>Tarih:</strong> {{ activeCell.col.label }}</p>
             <p><strong>Saat:</strong> {{ activeCell.row.time }}</p>
             <p><strong>Personel:</strong> {{ activeCell.row[activeCell.col.name]?.personnelName || 'Seçim Yok' }}</p>
-            <p><strong>Öğrenci:</strong> {{ activeCell.row[activeCell.col.name]?.studentName || 'Boş' }}</p>
+            <p><strong>Öğrenciler:</strong></p>
+            <ul>
+              <li v-for="student in selectedStudents" :key="student.value">
+              {{ student.label }}
+              </li>
+            </ul>
             <p><strong>Not:</strong> {{ activeCell.row[activeCell.col.name]?.note || 'Yok' }}</p>
           </div>
           <q-select
-            v-model="selectedStudent"
+            v-model="selectedStudents"
             :options="studentOptions"
             label="Öğrenci Seçin"
             outlined
+            multiple
           />
           <q-input
             v-model="note"
@@ -140,13 +155,14 @@ export default {
       selectedPersonnel: null,
       personnelOptions: [],
       studentOptions: [],
-      selectedStudent: null,
+      selectedStudents: [],
       note: '',
       isCellModalOpen: false,
       isDeleteDialogOpen: false, // Silme onayı için dialog kontrolü
       activeCell: null,
       columns: [],
-      rows: []
+      rows: [],
+      pagination: { rowsPerPage: 0 }
     }
   },
   methods: {
@@ -178,18 +194,15 @@ export default {
     },
     // Satırları oluşturma
     generateTimeRows () {
-      const times = []
-      for (let i = 8; i <= 18; i++) {
-        times.push({
-          time: `${i}:00`,
-          monday: '',
-          tuesday: '',
-          wednesday: '',
-          thursday: '',
-          friday: ''
-        })
-      }
-      return times
+      const times = ['9:00', '10:00', '11:00', '12:00', '13:30', '14:30', '15:30', '16:30']
+      return times.map((time) => ({
+        time,
+        monday: '',
+        tuesday: '',
+        wednesday: '',
+        thursday: '',
+        friday: ''
+      }))
     },
 
     // Haftanın başlangıç tarihini al
@@ -233,11 +246,7 @@ export default {
     },
     // Planları backend'den çekme
     async fetchSchedules () {
-      if (!this.selectedPersonnel) {
-        console.error('Personel seçilmedi!')
-        return
-      }
-
+      if (!this.selectedPersonnel) return
       const monday = this.getMonday(this.currentDate)
       const sunday = new Date(monday)
       sunday.setDate(monday.getDate() + 6)
@@ -267,7 +276,7 @@ export default {
                   _id: schedule._id,
                   personnelId: schedule.personnelId,
                   personnelName: schedule.personnelName,
-                  studentName: schedule.studentName,
+                  studentNames: schedule.studentNames || [],
                   isVehicle: schedule.studentVehicle === 'Evet', // Burada kontrol
                   note: schedule.note || ''
                 }
@@ -287,12 +296,12 @@ export default {
           label: row[col.name].personnelName || 'Seçim Yok',
           value: row[col.name].personnelId
         }
-        this.selectedStudent = this.studentOptions.find(
-          (student) => student.label === row[col.name].studentName
-        )
+        this.selectedStudents = (row[col.name].studentNames || []).map((name) =>
+          this.studentOptions.find((option) => option.label === name)
+        ).filter(Boolean)
         this.note = row[col.name].note || ''
       } else {
-        this.selectedStudent = null
+        this.selectedStudents = [] // Modal açıldığında temizle
         this.note = ''
       }
 
@@ -332,30 +341,41 @@ export default {
 
     // Veriyi backend'e kaydetme
     async saveCellData () {
-      if (this.activeCell) {
-        const { row, col } = this.activeCell
-        const scheduleId = row[col.name]?._id
+      if (!this.activeCell) return
+      const { row, col } = this.activeCell
+      const scheduleId = row[col.name]?._id
+      // Seçilen öğrencilerin kontrolü
+      if (!this.selectedStudents || this.selectedStudents.length === 0) {
+        console.error('Hiç öğrenci seçilmedi.')
+        this.$q.notify({ type: 'warning', message: 'Lütfen en az bir öğrenci seçin!' })
+        return
+      }
 
-        const data = {
-          personnelId: this.selectedPersonnel.value,
-          studentId: this.selectedStudent.value,
-          date: col.label.split(' ')[0],
-          time: row.time,
-          note: this.note
+      const data = {
+        personnelId: this.selectedPersonnel.value,
+        studentIds: this.selectedStudents.map((student) => student.value), // Backend'e ID gönderiyoruz
+        studentNames: this.selectedStudents.map((student) => student.label), // İsimler de gönderiliyor
+        date: col.label.split(' ')[0],
+        time: row.time,
+        note: this.note
+      }
+
+      console.log('Gönderilen Veri:', data) // Backend'e gönderilen veriyi kontrol edin
+
+      try {
+        if (scheduleId) {
+          await axios.put(`http://localhost:3000/api/schedules/${scheduleId}`, data)
+        } else {
+          const response = await axios.post('http://localhost:3000/api/schedules', data)
+          row[col.name] = { ...data, _id: response.data._id }
         }
-
-        try {
-          if (scheduleId) {
-            await axios.put(`http://localhost:3000/api/schedules/${scheduleId}`, data)
-            row[col.name] = { ...data, _id: scheduleId, studentName: this.selectedStudent.label }
-          } else {
-            const response = await axios.post('http://localhost:3000/api/schedules', data)
-            row[col.name] = { ...data, _id: response.data._id, studentName: this.selectedStudent.label }
-          }
-          this.fetchSchedules()
-          this.closeCellModal()
-        } catch (error) {
-          console.error('Kaydetme hatası:', error)
+        this.fetchSchedules()
+        this.closeCellModal()
+      } catch (error) {
+        if (error.response) {
+          console.error('Sunucu Hatası:', error.response.data)
+        } else {
+          console.error('Kaydetme Hatası:', error.message)
         }
       }
     },

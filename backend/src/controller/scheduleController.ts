@@ -33,13 +33,13 @@ class ScheduleController {
         schedules.map(async (schedule) => {
           const newDate = new Date(schedule.date)
           newDate.setDate(newDate.getDate() + 7)
-          const student = await StudentModel.findById(schedule.studentId)
+          const student = await StudentModel.findById(schedule.studentIds)
           const studentVehicle = student?.vehicle || 'Hayır'
           return {
             personnelId: schedule.personnelId,
             personnelName: schedule.personnelName,
-            studentId: schedule.studentId,
-            studentName: schedule.studentName,
+            studentId: schedule.studentIds,
+            studentName: schedule.studentNames,
             studentVehicle, // Servis bilgisi
             date: newDate,
             time: schedule.time,
@@ -59,9 +59,9 @@ class ScheduleController {
 
   createSchedule = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { personnelId, studentId, date, time, note } = req.body
+      const { personnelId, studentIds, date, time, note } = req.body
       // Validate inputs
-      if (!personnelId || !studentId || !date || !time) {
+      if (!personnelId || !studentIds || !date || !time) {
         res.status(400).json({ message: 'Eksik alanlar var!' })
         return
       }
@@ -75,30 +75,32 @@ class ScheduleController {
 
       // Fetch Personnel and Student Details
       const personnel = await PersonnelModel.findById(personnelId)
-      const student = await StudentModel.findById(studentId)
-
       if (!personnel) {
         res.status(404).json({ message: 'Personel bulunamadı!' })
         return
       }
-
-      if (!student) {
-        res.status(404).json({ message: 'Öğrenci bulunamadı!' })
+      const students = await StudentModel.find({ _id: { $in: studentIds } })
+      if (!students || students.length === 0) {
+        res.status(404).json({ message: 'Öğrenciler bulunamadı!' })
         return
       }
-
+      const studentNames = students.map((student) => `${student.name} ${student.surname}`)
+      const studentVehicle = students
+        .map((student) => student.vehicle)
+        .includes('Evet')
+        ? 'Evet'
+        : 'Hayır'
       // Create Schedule
       const scheduleData = {
         personnelId,
         personnelName: `${personnel.name} ${personnel.surname}`,
-        studentId,
-        studentName: `${student.name} ${student.surname}`,
+        studentIds,
+        studentNames,
         date: formattedDate,
-        studentVehicle: student?.vehicle || 'Hayır', // Eğer `vehicle` bilgisi yoksa varsayılan olarak 'Hayır'
+        studentVehicle, // Bir öğrenci bile "Evet" ise tüm plan için "Evet" yap
         time,
         note
       }
-
       const newSchedule = new Schedule(scheduleData)
       await newSchedule.save()
 
@@ -207,14 +209,14 @@ class ScheduleController {
       }
 
       // Öğrenci bilgilerini güncelle
-      if (studentId && studentId !== schedule.studentId) {
+      if (studentId && studentId !== schedule.studentIds) {
         const student = await StudentModel.findById(studentId)
         if (!student) {
           res.status(404).json({ message: 'Öğrenci bulunamadı!' })
           return
         }
-        schedule.studentId = studentId
-        schedule.studentName = `${student.name} ${student.surname}`
+        schedule.studentIds = studentId
+        schedule.studentNames = `${student.name} ${student.surname}`
       }
 
       // Not bilgilerini güncelle
