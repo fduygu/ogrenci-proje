@@ -4,7 +4,6 @@ import PersonnelModel from '../models/personnelModel'
 import StudentModel from '../models/studentModel'
 
 class ScheduleController {
-  // Planı Haftaya Kopyala
   copyScheduleToNextWeek = async (req: Request, res: Response): Promise<void> => {
     try {
       const { personnelId, startDate, endDate } = req.body
@@ -33,13 +32,21 @@ class ScheduleController {
         schedules.map(async (schedule) => {
           const newDate = new Date(schedule.date)
           newDate.setDate(newDate.getDate() + 7)
-          const student = await StudentModel.findById(schedule.studentIds)
-          const studentVehicle = student?.vehicle || 'Hayır'
+
+          // Öğrencileri çek
+          const students = await StudentModel.find({ _id: { $in: schedule.studentIds } })
+
+          // Öğrenci isimlerini oluştur
+          const studentNames = students.map(student => `${student.name} ${student.surname}`)
+
+          // Servis kullanımı kontrolü
+          const studentVehicle = students.some(student => student.vehicle === 'Evet') ? 'Evet' : 'Hayır'
+
           return {
             personnelId: schedule.personnelId,
             personnelName: schedule.personnelName,
-            studentId: schedule.studentIds,
-            studentName: schedule.studentNames,
+            studentIds: schedule.studentIds, // ID'leri koru
+            studentNames, // Doğru öğrenci isimlerini ekle
             studentVehicle, // Servis bilgisi
             date: newDate,
             time: schedule.time,
@@ -47,6 +54,7 @@ class ScheduleController {
           }
         })
       )
+
       // Yeni planları veritabanına kaydet
       await Schedule.insertMany(newSchedules)
 
