@@ -40,15 +40,19 @@
     <q-td
       v-for="personnel in personnelOptions"
       :key="personnel._id"
-      :class="['with-border', { 'bg-green': props.row[personnel._id]?.isVehicle }]">
-      {{ console.log('isVehicle:', props.row[personnel._id]?.isVehicle) }}
+      :class="['with-border', { 'bg-green': props.row[personnel._id]?.isVehicle }]" class="cell-content">
       <template v-if="props.row[personnel._id] !== 'Boş'">
         <span
-          v-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length > 1">
+          v-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length > 1" class="group-text">
         GRUP ÇALIŞMASI
+        <q-tooltip>
+            <div v-for="student in props.row[personnel._id]?.studentNames" :key="student">
+              {{ student }}
+            </div>
+          </q-tooltip>
         </span>
         <span
-          v-else-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length === 1">
+          v-else-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length === 1" class="single-student">
           {{ props.row[personnel._id]?.studentNames[0] }}
         </span>
         <span v-else>Boş</span>
@@ -232,4 +236,24 @@ export default {
   border: 1px solid #ccc;
   border-collapse: collapse;
 }
+/* Boşlukları kaldır ve içeriği küçült */
+.cell-content {
+  padding: 2px 5px; /* Hücre içindeki boşluğu azalt */
+  text-align: center; /* İçeriği ortala */
+  white-space: nowrap; /* Satır kaymasını önle */
+}
+
+/* Grup yazısını küçült ve hizala */
+.group-text {
+  font-weight: bold;
+  display: inline-block; /* Blok olarak değil, sadece içeriğe göre genişle */
+  padding: 2px 5px;
+}
+
+/* Tek öğrenci isimlerini de aynı şekilde küçült */
+.single-student {
+  display: inline-block;
+  padding: 2px 5px;
+}
+
 </style>

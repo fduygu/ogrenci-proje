@@ -9,6 +9,14 @@
         @click="showModal = true"
         class="col-auto"
       />
+      <q-input
+        dense
+        filled
+        debounce="300"
+        v-model="searchQuery"
+        placeholder="Öğrenci Ara..."
+        class="col"
+      />
       <q-btn-dropdown
         label="Filtrele"
         color="primary"
@@ -312,7 +320,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { format } from 'date-fns'
 import StudentRegistration from './StudentRegistration.vue' // Yeni Kayıt bileşeni
@@ -344,11 +352,31 @@ export default defineComponent({
   setup () {
     const router = useRouter()
     const students = ref<Student[]>([])
-    const filteredStudents = ref<Student[]>([])
     const showModal = ref(false)
     const isEditMode = ref(false)
     const isPopupOpen = ref(false)
     const isDeleteDialogOpen = ref(false)
+    const searchQuery = ref('')
+    const selectedFilter = ref('')
+    const filteredStudents = computed(() => {
+      let filtered = students.value
+
+      // Önce filtreyi uygula (aktif, sıradaki, pasif)
+      if (selectedFilter.value) {
+        filtered = filtered.filter(student => student.status === selectedFilter.value)
+      }
+
+      // Sonra arama sorgusunu uygula (ad, soyad, eğitim)
+      if (searchQuery.value) {
+        filtered = filtered.filter(student =>
+          student.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          student.surname.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          student.education.some(edu => edu.toLowerCase().includes(searchQuery.value.toLowerCase()))
+        )
+      }
+
+      return filtered
+    })
     const selectedStudent = ref<Student>({
       _id: '',
       name: '',
@@ -408,21 +436,19 @@ export default defineComponent({
     }
 
     const fetchStudents = async () => {
+      console.log('fetchStudents çağrıldı, öğrenci verileri güncelleniyor...')
       try {
         const response = await axios.get('http://localhost:3000/api/students')
         students.value = response.data
-        filteredStudents.value = [...students.value] // Başlangıçta tüm öğrencileri göster
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
       } finally {
-        isLoading.value = false
+        isLoading.value = false // Veri çekme tamamlandıktan sonra kapat
       }
     }
 
     const applyFilter = (status: string) => {
-      filteredStudents.value = students.value.filter((student) =>
-        status ? student.status === status : true
-      )
+      selectedFilter.value = status
     }
 
     const redirectToServicePage = () => {
@@ -430,7 +456,6 @@ export default defineComponent({
     }
 
     const onStudentAdded = () => {
-      showModal.value = false
       fetchStudents()
     }
 
@@ -442,17 +467,18 @@ export default defineComponent({
       if (selectedStudent.value) {
         try {
           const response = await axios.put(
-            `http://localhost:3000/api/students/${selectedStudent.value._id}`,
-            selectedStudent.value
+        `http://localhost:3000/api/students/${selectedStudent.value._id}`,
+        selectedStudent.value
           )
+
           console.log('Güncelleme başarılı:', response.data)
 
           const index = students.value.findIndex(
             (s) => s._id === selectedStudent.value?._id
           )
+
           if (index !== -1) {
             students.value[index] = { ...selectedStudent.value }
-            filteredStudents.value = [...students.value]
           }
 
           isPopupOpen.value = false
@@ -516,7 +542,9 @@ export default defineComponent({
       deleteStudent,
       updateStudent,
       confirmDelete,
-      showStudentDetails
+      showStudentDetails,
+      searchQuery
+
     }
   }
 })
