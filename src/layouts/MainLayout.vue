@@ -17,7 +17,7 @@
           <q-img src="/elogo.png" alt="E Logo" class="logo-img" style="cursor: pointer" @click="goToHome" />
         </q-item-section>
         <!-- Öğrenciler Menüsü -->
-        <q-item class="menu-item orange" clickable v-ripple to="/student-list">
+        <q-item class="menu-item turquoise" clickable v-ripple to="/student-list">
           <q-item-section avatar>
             <q-icon name="school" />
           </q-item-section>
@@ -34,7 +34,7 @@
             Personeller
           </q-item-section>
         </q-item>
-        <q-item class="menu-item purple" clickable v-ripple to="/classes-list">
+        <q-item class="menu-item orange" clickable v-ripple to="/classes-list">
           <q-item-section avatar>
             <q-icon name="class" />
           </q-item-section>
@@ -42,7 +42,7 @@
             Sınıflar
           </q-item-section>
         </q-item>
-        <q-item class="menu-item turquoise" clickable v-ripple to="/planlama">
+        <q-item class="menu-item purple" clickable v-ripple to="/planlama">
           <q-item-section avatar>
             <q-icon name="calendar_today" />
           </q-item-section>
@@ -50,6 +50,7 @@
             Planlama
           </q-item-section>
         </q-item>
+        <!--
         <q-item class="menu-item orange" clickable v-ripple to="/degerlendirme">
           <q-item-section avatar>
             <q-icon name="grading" />
@@ -66,6 +67,7 @@
             Kazanımlar
           </q-item-section>
         </q-item>
+         -->
       </q-list>
     </q-drawer>
 
@@ -115,13 +117,13 @@ export default defineComponent({
   transition: all 0.3s ease-in-out;
 }
 .turquoise {
-  background: linear-gradient(45deg, #1abc9c, #16a085);
+  background: linear-gradient(45deg, #1abc9c, #1abc9c);
 }
 .orange {
-  background: linear-gradient(45deg, #e67e22, #d35400);
+  background: linear-gradient(45deg, #e67e22, #f39c12 );
 }
 .pink {
-  background: linear-gradient(45deg, #e84393, #ff6b81);
+  background: linear-gradient(45deg, #e84393, #e84393);
 }
 .purple {
   background: linear-gradient(45deg, #6c5ce7, #8e44ad);

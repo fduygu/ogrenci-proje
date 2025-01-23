@@ -2,8 +2,8 @@
   <q-page>
     <!-- Tablo Başlığı -->
     <div class="text-h5 text-center q-mb-md">Engelsiz Yaşam Alanı Ders Programı</div>
-
     <!-- Ders Programı Tablosu -->
+     <div class="print-area">
     <q-table
       :rows="processedRows"
       :columns="columns"
@@ -61,8 +61,11 @@
     </q-td>
   </tr>
 </template>
-
     </q-table>
+  </div>
+    <div class="print-btn-container">
+        <q-btn label="Çıktı Al" @click="printPage" color="primary" icon="print" />
+      </div>
   </q-page>
 </template>
 
@@ -82,6 +85,69 @@ export default {
     }
   },
   methods: {
+    printPage () {
+      const printContent = document.querySelector('.print-area')
+
+      if (!printContent) {
+        console.error('Yazdırma için hedef alan bulunamadı!')
+        return
+      }
+
+      // Yeni bir print penceresi aç
+      const newWindow = window.open('', '', 'width=900,height=700')
+      newWindow.document.write(`
+      <html>
+        <head>
+          <title>Ders Programı</title>
+          <style>
+            @media print {
+              @page {
+                size: A4 portrait; /* Sayfayı A4 formatında dikey yap */
+                margin: 10px; /* Kenar boşluklarını azalt */
+              }
+              
+              body {
+                font-family: Arial, sans-serif;
+                font-size: 12px; /* Yazıları küçült */
+              }
+
+              table {
+                width: 100%; /* Tüm tabloyu ekrana yay */
+                height: 100%;
+                border-collapse: collapse;
+                font-size: 10px; /* Yazıları küçült */
+              }
+
+              th, td {
+                border: 1px solid #000;
+                padding: 4px; /* Hücreleri küçült */
+                text-align: center;
+                white-space: nowrap; /* Taşmaları engelle */
+              }
+
+              .bg-light-blue {
+                background-color: #d9edf7;
+                font-weight: bold;
+              }
+
+              .bg-green {
+                background-color: #88e88b;
+                color: #000;
+                font-weight: bold;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `)
+      newWindow.document.close()
+      newWindow.focus()
+      newWindow.print()
+      newWindow.close()
+    },
     getMonthName (date) {
       const monthNames = [
         'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -254,6 +320,53 @@ export default {
 .single-student {
   display: inline-block;
   padding: 2px 5px;
+}
+@media print {
+  .print-btn-container {
+    display: none; /* Yazdırma sırasında butonu gizle */
+  }
+  @page {
+    size: A4 portrait; /* Sayfayı A4 boyutuna getir */
+    margin: 10px; /* Kenar boşluklarını azalt */
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 12px; /* Yazıları küçült */
+    line-height: 1.2;
+  }
+
+  .print-area {
+    width: 100%;
+  }
+
+  table {
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+    font-size: 10px; /* Küçük font ile daha fazla veriyi sığdır */
+  }
+
+  th, td {
+    border: 1px solid black;
+    padding: 4px; /* Hücreleri küçült */
+    text-align: center;
+    white-space: nowrap; /* Taşmaları engelle */
+  }
+  .print-btn-container {
+    display: none; /* Yazdırma sırasında butonu gizle */
+  }
+}
+/* Çıktı Al butonunu sağ alt köşeye hizalar */
+.print-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+/* Çıktı Al butonunun üstündeki boşluğu artırır */
+.print-btn-container .q-btn {
+  margin-top: 15px;
 }
 
 </style>

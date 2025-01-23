@@ -13,6 +13,7 @@
     </div>
 
     <!-- Öğrenci Tablosu -->
+    <div class="print-area">
     <q-table
       :rows="filteredStudents"
       :columns="columns"
@@ -61,6 +62,11 @@
         </q-td>
       </template>
     </q-table>
+  </div>
+        <!-- Çıktı Al Butonu -->
+        <div class="print-btn-container">
+      <q-btn label="Çıktı Al" @click="printPage" color="primary" icon="print" />
+    </div>
 
     <!-- Detay Popup -->
     <q-dialog v-model="isPopupOpen">
@@ -97,6 +103,11 @@ interface Student {
   name: string;
   surname: string;
   vehicle: string;
+  phoneNumber1?: string;// Telefon alanını ekledik
+  status: string;// Durum alanını ekledik
+  createdAt?: string;
+  imageUrl?: string;
+
 }
 
 export default defineComponent({
@@ -134,8 +145,9 @@ export default defineComponent({
       }
     }
 
-    const filteredStudents = computed(() => students.value)
-
+    const filteredStudents = computed(() => {
+      return students.value.filter(student => student.status === 'main')
+    })
     const showStudentDetails = (student: Student) => {
       selectedStudent.value = { ...student }
       isPopupOpen.value = true
@@ -143,7 +155,7 @@ export default defineComponent({
 
     const statusText = (status: string) => {
       if (status === 'main') {
-        return 'Asıl Öğrenci'
+        return 'Asil Öğrenci'
       } else if (status === 'waiting') {
         return 'Sıradaki Öğrenci'
       }
@@ -172,6 +184,86 @@ export default defineComponent({
     const goBack = () => {
       router.push('/student-list') // Geri butonuna basıldığında yönlendir
     }
+    const printPage = () => {
+      const tableContent = `
+    <table>
+      <thead>
+        <tr>
+          <th>Fotoğraf</th>
+          <th>Ad</th>
+          <th>Soyad</th>
+          <th>Servis Kullanımı</th>
+          <th>Telefon</th>
+          <th>Durumu</th>
+          <th>Kayıt Tarihi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filteredStudents.value.map(student => `
+          <tr>
+            <td>${student.imageUrl ? `<img src="${student.imageUrl}" alt="${student.name}" style="width: 40px; height: 40px; border-radius: 50%;">` : ''}</td>
+            <td>${student.name}</td>
+            <td>${student.surname}</td>
+            <td>${student.vehicle}</td>
+            <td>${student.phoneNumber1}</td>
+            <td>${statusText(student.status)}</td>
+            <td>${formatDate(student.createdAt)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `
+
+      const newWindow = window.open('', '', 'width=900,height=700')
+
+      if (!newWindow) {
+        console.error('Yeni pencere açılamadı! Tarayıcı pop-up engelleyicisini kontrol edin.')
+        return
+      }
+
+      newWindow.document.write(`
+    <html>
+      <head>
+        <title>Servis Kullanan Öğrenciler</title>
+        <style>
+          @media print {
+            @page {
+              size: A4 portrait;
+              margin: 10px;
+            }
+            body {
+              font-family: Arial, sans-serif;
+              font-size: 12px;
+              padding: 20px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 12px;
+            }
+            th, td {
+              border: 1px solid black;
+              padding: 6px;
+              text-align: center;
+              white-space: nowrap;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <h2>Servis Kullanan Öğrenciler</h2>
+        ${tableContent}
+      </body>
+    </html>
+  `)
+
+      newWindow.document.close()
+      newWindow.focus()
+      setTimeout(() => {
+        newWindow.print()
+        newWindow.close()
+      }, 500)
+    }
 
     onMounted(fetchStudents)
 
@@ -186,6 +278,7 @@ export default defineComponent({
       updateStudent,
       formatDate,
       statusText,
+      printPage,
       goBack // Geri fonksiyonunu ekledik
     }
   }
@@ -198,5 +291,46 @@ export default defineComponent({
 }
 .text-bold {
   font-weight: bold;
+}
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10px;
+  }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .print-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    page-break-after: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th, td {
+    border: 1px solid black;
+    padding: 6px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+}
+.print-btn-container {
+  display: flex;
+  justify-content: flex-end; /* Butonu en sağa hizala */
+  padding: 10px;
 }
 </style>

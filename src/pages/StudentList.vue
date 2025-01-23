@@ -80,6 +80,11 @@
           {{ props.row.phoneNumber1 }}
         </q-td>
       </template>
+      <template v-slot:body-cell-status="props">
+        <q-td :props="props">
+          {{ statusText(props.row.status) }}
+        </q-td>
+      </template>
       <template v-slot:body-cell-education="props">
         <q-td :props="props">
           {{ props.row.education.join(', ') }}
@@ -91,7 +96,10 @@
         </q-td>
       </template>
     </q-table>
-
+    <!-- Çıktı Al Butonu -->
+    <div class="print-btn-container">
+      <q-btn label="Çıktı Al" @click="printPage" color="primary" icon="print" />
+    </div>
     <!-- Yükleniyor Göstergesi -->
     <q-spinner v-if="isLoading" />
 
@@ -358,6 +366,7 @@ export default defineComponent({
     const isDeleteDialogOpen = ref(false)
     const searchQuery = ref('')
     const selectedFilter = ref('')
+    const allStudents = ref<Student[]>([])
     const filteredStudents = computed(() => {
       let filtered = students.value
 
@@ -427,6 +436,7 @@ export default defineComponent({
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
       { name: 'surname', label: 'Soyad', field: 'surname', align: 'left' as const },
       { name: 'phoneNumber1', label: 'Telefon', field: 'phoneNumber1', align: 'left' as const },
+      { name: 'status', label: 'Durumu', field: 'status', align: 'left' as const },
       { name: 'education', label: 'Aldığı Eğitim', field: 'education', align: 'left' as const },
       { name: 'createdAt', label: 'Kayıt Tarihi', field: 'createdAt', align: 'left' as const }
     ]
@@ -436,10 +446,10 @@ export default defineComponent({
     }
 
     const fetchStudents = async () => {
-      console.log('fetchStudents çağrıldı, öğrenci verileri güncelleniyor...')
       try {
         const response = await axios.get('http://localhost:3000/api/students')
         students.value = response.data
+        allStudents.value = response.data
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
       } finally {
@@ -494,7 +504,7 @@ export default defineComponent({
     }
     const statusText = (status: string) => {
       if (status === 'main') {
-        return 'Asıl Öğrenci'
+        return 'Asil Öğrenci'
       } else if (status === 'waiting') {
         return 'Sıradaki Öğrenci'
       } else if (status === 'inactive') {
@@ -517,7 +527,87 @@ export default defineComponent({
         }
       }
     }
+    const printPage = async () => {
+      try {
+        const allData = filteredStudents.value
+        const newWindow = window.open('', '', 'width=900,height=700')
 
+        if (!newWindow) {
+          console.error('Yeni pencere açılamadı! Tarayıcı pop-up engelleyicisini kontrol edin.')
+          return
+        }
+
+        const tableContent = `
+          <table border="1" width="100%" style="border-collapse: collapse; font-size: 12px; text-align: center;">
+            <thead>
+              <tr>
+                <th>Fotoğraf</th>
+                <th>Ad</th>
+                <th>Soyad</th>
+                <th>Telefon</th>
+                <th>Durumu</th>
+                <th>Aldığı Eğitim</th>
+                <th>Kayıt Tarihi</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allData.map((student: Student) => `
+                <tr>
+                  <td>${student.imageUrl ? `<img src="${student.imageUrl}" alt="${student.name}" style="width: 40px; height: 40px; border-radius: 50%;">` : ''}</td>
+                  <td>${student.name}</td>
+                  <td>${student.surname}</td>
+                  <td>${student.phoneNumber1}</td>
+                  <td>${statusText(student.status)}</td>
+                  <td>${student.education.join(', ')}</td>
+                  <td>${formatDate(student.createdAt)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `
+
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>Öğrenci Listesi</title>
+              <style>
+                @media print {
+                  @page {
+                    size: A4 portrait;
+                    margin: 10px;
+                  }
+                  body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                  }
+                  table {
+                    width: 100%;
+                    border-collapse: collapse;
+                  }
+                  th, td {
+                    border: 1px solid black;
+                    padding: 5px;
+                    text-align: center;
+                    white-space: nowrap;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <h2 style="text-align: center;">Öğrenci Listesi</h2>
+              ${tableContent}
+            </body>
+          </html>
+        `)
+
+        newWindow.document.close()
+        newWindow.focus()
+        newWindow.print()
+        newWindow.close()
+      } catch (error) {
+        console.error('Çıktı alma sırasında hata oluştu:', error)
+      }
+    }
     onMounted(fetchStudents)
 
     return {
@@ -543,6 +633,7 @@ export default defineComponent({
       updateStudent,
       confirmDelete,
       showStudentDetails,
+      printPage,
       searchQuery
 
     }
@@ -577,5 +668,10 @@ export default defineComponent({
 
 .close-btn:hover {
   background-color: darkred; /* Hover sırasında koyu kırmızı */
+}
+.print-btn-container {
+  display: flex;
+  justify-content: flex-end; /* Butonu en sağa hizala */
+  padding: 10px;
 }
 </style>

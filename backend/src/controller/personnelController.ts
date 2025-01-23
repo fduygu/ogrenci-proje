@@ -4,7 +4,6 @@ import * as PersonnelService from '../services/personnelService'
 // Personel oluşturma
 export const createPersonnel = async (req: Request, res: Response) => {
   try {
-    console.log('Yüklenen Dosya:', req.file)
     // Eğer fotoğraf yüklendiyse imageUrl'i ayarla
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null
 
@@ -14,7 +13,6 @@ export const createPersonnel = async (req: Request, res: Response) => {
       imageUrl // Fotoğraf URL'sini ekle
     }
     const savedPersonnel = await PersonnelService.createPersonnel(personnelData)// Veritabanına kaydet
-    console.log('Kaydedilen Personel:', savedPersonnel) // Başarıyla kaydedilen veriyi logla
     res.status(201).json(savedPersonnel)
   } catch (error) {
     console.error('Veritabanına kaydedilirken hata oluştu:', error) // Hataları logla
