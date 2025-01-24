@@ -8,7 +8,7 @@
       </div>
       <!-- T.C. Kimlik No ve Cinsiyet -->
       <div class="q-field-row">
-        <q-input v-model="studentData.tcNumber" label="T.C. Kimlik No" required />
+        <q-input v-model="studentData.tcNumber" label="T.C. Kimlik No" required @blur="validateTCNumber" />
         <q-select v-model="studentData.gender" :options="genderOptions" option-label="label" option-value="value" label="Cinsiyet" required />
       </div>
       <!-- Yaş ve Telefon -->
@@ -110,10 +110,22 @@ export default defineComponent({
       { label: 'Grup', value: 'Grup' },
       { label: 'Dil Konuşma', value: 'Dil Konuşma' }
     ]
-
+    const validateTCNumber = () => {
+      const tc = studentData.tcNumber
+      const tcRegex = /^[1-9][0-9]{10}$/
+      if (!tcRegex.test(tc)) {
+        Notify.create({ message: 'Geçersiz T.C. Kimlik Numarası!', color: 'negative', position: 'top' })
+        studentData.tcNumber = ''
+      }
+    }
     // Formu Gönderme Fonksiyonu
     const addOrUpdateStudent = async () => {
       try {
+        const { data } = await axios.get(`http://localhost:3000/api/students/check-tc/${studentData.tcNumber}`)
+        if (data.exists) {
+          Notify.create({ message: 'Bu T.C. kimlik numarası zaten kayıtlı!', color: 'negative', position: 'top' })
+          return
+        }
         const formData = new FormData()
 
         // Form verilerini ekle
@@ -179,7 +191,8 @@ export default defineComponent({
       statusOptions,
       educationOptions,
       addOrUpdateStudent,
-      resetForm
+      resetForm,
+      validateTCNumber
     }
   }
 })

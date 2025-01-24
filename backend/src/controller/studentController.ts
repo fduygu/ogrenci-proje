@@ -124,3 +124,14 @@ export const getActiveStudents = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Aktif öğrenciler alınırken hata oluştu', error })
   }
 }
+export const checkTCNumber = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { tcNumber } = req.params
+    const existingStudent = await StudentService.getStudentsByFilter({ tcNumber })
+
+    res.json({ exists: existingStudent.length > 0 })
+  } catch (error) {
+    console.error('TC Kimlik No kontrol hatası:', error)
+    res.status(500).json({ message: 'Sunucu hatası!' })
+  }
+}
