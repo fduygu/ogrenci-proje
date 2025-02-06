@@ -3,6 +3,10 @@ import { RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
+    redirect: '/main' // Ana sayfayı yönlendiriyoruz
+  },
+  {
+    path: '/main',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
@@ -16,8 +20,17 @@ const routes: RouteRecordRaw[] = [
       { path: 'planlama', component: () => import('pages/CalenderPage.vue') },
       { path: 'classes', component: () => import('pages/ClassPage.vue') },
       { path: 'classes-list', component: () => import('pages/ClassroomPage.vue') },
-      { path: 'service-list', component: () => import('pages/ServiceList.vue') }
-
+      { path: 'service-list', component: () => import('pages/ServiceList.vue') },
+      { path: 'profile', component: () => import('pages/ProfilePage.vue') }
+    ]
+  },
+  {
+    path: '/auth',
+    component: () => import('layouts/AuthLayout.vue'), // 🔥 AuthLayout ekledik!
+    children: [
+      { path: 'login', component: () => import('pages/LoginPage.vue'), meta: { guestOnly: true } },
+      { path: 'forgot-password', component: () => import('pages/ForgotPassword.vue'), meta: { guestOnly: true } },
+      { path: 'reset-password/:token', component: () => import('pages/ResetPassword.vue'), meta: { guestOnly: true } }
     ]
   },
   {

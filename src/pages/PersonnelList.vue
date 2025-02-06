@@ -3,6 +3,7 @@
     <!-- Üst Araç Çubuğu -->
     <div class="q-mb-md row items-center justify-between">
       <q-btn
+      v-if="userRole === 'admin'"
         label="Yeni Kayıt"
         color="primary"
         icon="add"
@@ -110,6 +111,7 @@
               </div>
               <q-separator class="q-my-sm" />
               <div v-if="selectedPersonnel" class="q-mt-md">
+                <p><strong>Email:</strong>{{selectedPersonnel.email }}</p>
                 <p><strong>Ünvan:</strong> {{ selectedPersonnel.title }}</p>
                 <p><strong>Branş:</strong> {{ selectedPersonnel.branch }}</p>
                 <p><strong>Telefon:</strong> {{ selectedPersonnel.phone }}</p>
@@ -175,28 +177,10 @@
 
         <!-- Düzenle ve Sil Butonları -->
         <q-card-actions align="right">
-          <q-btn
-            v-if="!isEditMode"
-            flat
-            label="Düzenle"
-            color="primary"
-            @click="isEditMode = true"
-          />
-          <q-btn
-            v-if="isEditMode"
-            flat
-            label="Kaydet"
-            color="primary"
-            @click="updatePersonnel"
-          />
-          <q-btn
-            v-if="isEditMode"
-            flat
-            label="Vazgeç"
-            color="secondary"
-            @click="isEditMode = false"
-          />
-          <q-btn flat label="Sil" color="red" @click="confirmDelete" />
+          <q-btn v-if="!isEditMode && userRole !== 'personnel'" flat label="Düzenle" color="primary" @click="isEditMode = true" />
+          <q-btn v-if="isEditMode && userRole !== 'personnel'" flat label="Kaydet" color="primary" @click="updatePersonnel" />
+          <q-btn v-if="isEditMode && userRole !== 'personnel'" flat label="Vazgeç" color="secondary" @click="isEditMode = false" />
+          <q-btn v-if="userRole !== 'personnel'" flat label="Sil" color="red" @click="confirmDelete" />
           <q-btn flat label="Kapat" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -222,7 +206,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import api from 'src/utils/axiosInstance'
 import { format } from 'date-fns'
 import PersonnelRegistration from './PersonnelRegistration.vue' // Yeni kayıt bileşeni
 
@@ -230,6 +214,8 @@ interface Personnel {
   _id: string;
   name: string;
   surname: string;
+  email: string;
+  password: string;
   tcNumber: string;
   title: string;
   branch: string;
@@ -247,10 +233,13 @@ export default defineComponent({
     const searchQuery = ref('')
     const showModal = ref(false)
     const isPopupOpen = ref(false)
+    const userRole = ref('') // Kullanıcı rolü
     const selectedPersonnel = ref<Personnel>({
       _id: '',
       name: '',
       surname: '',
+      email: '',
+      password: '',
       tcNumber: '',
       title: '',
       branch: '',
@@ -285,7 +274,12 @@ export default defineComponent({
 
     const fetchPersonnel = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/personnel')
+        const token = localStorage.getItem('token')
+        if (token) {
+          const decodedToken = JSON.parse(atob(token.split('.')[1]))
+          userRole.value = decodedToken.role // Token'dan kullanıcı rolünü al
+        }
+        const response = await api.get('/personnel')
         personnel.value = response.data
       } catch (error) {
         console.error('Personeller getirilirken hata oluştu:', error)
@@ -293,6 +287,7 @@ export default defineComponent({
         isLoading.value = false
       }
     }
+
     const onPersonnelAdded = () => {
       showModal.value = false
       fetchPersonnel()
@@ -306,10 +301,7 @@ export default defineComponent({
     const updatePersonnel = async () => {
       if (selectedPersonnel.value) {
         try {
-          await axios.put(
-            `http://localhost:3000/api/personnel/${selectedPersonnel.value._id}`,
-            selectedPersonnel.value
-          )
+          await api.put(`/personnel/${selectedPersonnel.value._id}`, selectedPersonnel.value)
           const index = personnel.value.findIndex(
             (p) => p._id === selectedPersonnel.value?._id
           )
@@ -331,7 +323,7 @@ export default defineComponent({
     const deletePersonnel = async () => {
       if (selectedPersonnel.value) {
         try {
-          await axios.delete(`http://localhost:3000/api/personnel/${selectedPersonnel.value._id}`)
+          await api.delete(`/personnel/${selectedPersonnel.value._id}`)
           personnel.value = personnel.value.filter((p) => p._id !== selectedPersonnel.value?._id)
 
           isPopupOpen.value = false
@@ -360,7 +352,8 @@ export default defineComponent({
       updatePersonnel,
       confirmDelete,
       deletePersonnel,
-      isLoading
+      isLoading,
+      userRole
     }
   }
 })

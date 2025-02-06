@@ -21,7 +21,7 @@ export const getAllClasses = async (req: Request, res: Response) => {
 
 export const getClassById = async (req: Request, res: Response) => {
   try {
-    const classItem = await ClassService.getClassById(req.params.id)
+    const classItem = await ClassService.getClassById(req.params._id)
     if (!classItem) {
       return res.status(404).json({ message: 'Sınıf bulunamadı' })
     }
@@ -33,7 +33,7 @@ export const getClassById = async (req: Request, res: Response) => {
 
 export const updateClass = async (req: Request, res: Response) => {
   try {
-    const updatedClass = await ClassService.updateClass(req.params.id, req.body)
+    const updatedClass = await ClassService.updateClass(req.params._id, req.body)
     if (!updatedClass) {
       return res.status(404).json({ message: 'Sınıf bulunamadı' })
     }
@@ -45,7 +45,7 @@ export const updateClass = async (req: Request, res: Response) => {
 
 export const deleteClass = async (req: Request, res: Response) => {
   try {
-    const deletedClass = await ClassService.deleteClass(req.params.id)
+    const deletedClass = await ClassService.deleteClass(req.params._id)
     if (!deletedClass) {
       return res.status(404).json({ message: 'Sınıf bulunamadı' })
     }

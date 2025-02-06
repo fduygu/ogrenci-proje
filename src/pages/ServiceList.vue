@@ -138,7 +138,16 @@ export default defineComponent({
 
     const fetchStudents = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/students/students-with-service')
+        const token = localStorage.getItem('token') // Burada token'ı alıyoruz
+        if (!token) {
+          console.error('Token bulunamadı!')
+          return
+        }
+        const response = await axios.get('http://localhost:3000/api/students/students-with-service', {
+          headers: {
+            Authorization: `Bearer ${token}` // Token'ı header'a ekliyoruz
+          }
+        })
         students.value = response.data
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
@@ -146,7 +155,7 @@ export default defineComponent({
     }
 
     const filteredStudents = computed(() => {
-      return students.value.filter(student => student.status === 'main')
+      return students.value.filter(student => student.status === 'Asil')
     })
     const showStudentDetails = (student: Student) => {
       selectedStudent.value = { ...student }
@@ -154,9 +163,9 @@ export default defineComponent({
     }
 
     const statusText = (status: string) => {
-      if (status === 'main') {
+      if (status === 'Asil') {
         return 'Asil Öğrenci'
-      } else if (status === 'waiting') {
+      } else if (status === 'Sıradaki') {
         return 'Sıradaki Öğrenci'
       }
       return 'Bilinmiyor'
@@ -165,9 +174,21 @@ export default defineComponent({
     const updateStudent = async () => {
       if (selectedStudent.value) {
         try {
+          const token = localStorage.getItem('token') // Token'ı alıyoruz
+          console.log('Token:', token) // Token'ı logla, doğru olup olmadığını görmek için
+
+          if (!token) {
+            console.error('Token bulunamadı!')
+            return
+          }
           await axios.put(
             `http://localhost:3000/api/students/${selectedStudent.value._id}`,
-            selectedStudent.value
+            selectedStudent.value,
+            {
+              headers: {
+                Authorization: `Bearer ${token}` // Header'a token'ı ekliyoruz
+              }
+            }
           )
           const index = students.value.findIndex((s) => s._id === selectedStudent.value?._id)
           if (index !== -1) {
@@ -182,7 +203,7 @@ export default defineComponent({
     }
 
     const goBack = () => {
-      router.push('/student-list') // Geri butonuna basıldığında yönlendir
+      router.push('/main/student-list') // Geri butonuna basıldığında yönlendir
     }
     const printPage = () => {
       const tableContent = `

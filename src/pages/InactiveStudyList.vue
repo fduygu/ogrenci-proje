@@ -280,7 +280,7 @@ import { format } from 'date-fns'
     createdAt: string; // Kayıt tarihi alanı
     imageUrl?: string;
     blood:string;
-    status: 'main' | 'waiting' | 'inactive';
+    status: 'Asil' | 'Sıradaki' | 'Pasif';
 
   }
 export default defineComponent({
@@ -306,7 +306,7 @@ export default defineComponent({
       createdAt: '',
       imageUrl: '',
       blood: '',
-      status: 'main'
+      status: 'Asil'
     })
     const isLoading = ref(true)
     const isEditMode = ref(false)
@@ -332,9 +332,9 @@ export default defineComponent({
       { label: 'Dil Konuşma', value: 'Dil Konuşma' }
     ]
     const statusOptions = [
-      { label: 'Asıl Öğrenci', value: 'main' },
-      { label: 'Sıradaki Öğrenci', value: 'waiting' },
-      { label: 'Pasif', value: 'inactive' }
+      { label: 'Asil Öğrenci', value: 'Asil' },
+      { label: 'Sıradaki Öğrenci', value: 'Sıradaki' },
+      { label: 'Pasif', value: 'Pasif' }
     ]
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
@@ -351,7 +351,7 @@ export default defineComponent({
 
     const filteredStudents = computed(() =>
       students.value.filter((student) =>
-        student.status === 'inactive' && // Yalnızca "main" olan öğrenciler
+        student.status === 'Sıradaki' && // Yalnızca "main" olan öğrenciler
           `${student.name} ${student.surname}`
             .toLowerCase()
             .includes(searchQuery.value.toLowerCase())
@@ -405,9 +405,9 @@ export default defineComponent({
       return statusMap[status] || 'Bilinmeyen'
     }
     const statusMap: Record<string, string> = {
-      main: 'Asıl Öğrenci',
-      waiting: 'Sıradaki Öğrenci',
-      inactive: 'Pasif Öğrenci'
+      Asil: 'Asil Öğrenci',
+      Sıradaki: 'Sıradaki Öğrenci',
+      Pasif: 'Pasif Öğrenci'
     }
     const deleteStudent = async () => {
       if (selectedStudent.value) {

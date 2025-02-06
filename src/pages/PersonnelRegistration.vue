@@ -6,9 +6,14 @@
         <q-input v-model="personnelData.name" label="Ad" required />
         <q-input v-model="personnelData.surname" label="Soyad" required />
       </div>
+      <!-- Email ve Şifre -->
+      <div class="q-field-row">
+        <q-input v-model="personnelData.email" type="email" label="E-Posta" required />
+        <q-input v-model="personnelData.password" type="password" label="Şifre" required />
+      </div>
       <!-- T.C. Kimlik No ve Ünvan -->
       <div class="q-field-row">
-        <q-input v-model="personnelData.tcNumber" label="T.C. Kimlik No" required />
+        <q-input v-model="personnelData.tcNumber" label="T.C. Kimlik No" required @blur="validateTCNumber"  />
         <q-input v-model="personnelData.title" label="Ünvan" required />
       </div>
       <!-- Branş ve Telefon -->
@@ -21,6 +26,17 @@
         <q-input v-model="personnelData.address" label="Adres" required />
         <q-file v-model="selectedFile" label="Fotoğraf Yükle" filled />
       </div>
+      <!-- Role Seçimi -->
+        <q-select
+          v-model="personnelData.role"
+          :options="roleOptions"
+          option-value="value"
+          option-label="label"
+          emit-value
+          label="Kullanıcı Rolü"
+          outlined
+          required
+        />
       <!-- Butonlar -->
       <div>
         <q-btn label="Kaydet" type="submit" color="primary" />
@@ -45,38 +61,69 @@ export default defineComponent({
       title: '',
       branch: '',
       phone: '',
-      address: ''
+      email: '',
+      password: '',
+      address: '',
+      role: 'personnel' // Varsayılan olarak "personnel"
     })
     const selectedFile = ref<File | null>(null)
+
+    const roleOptions = [
+      { label: 'Personel', value: 'personnel' },
+      { label: 'Admin', value: 'admin' }
+    ]
+    const validateTCNumber = () => {
+      const tc = personnelData.tcNumber
+      const tcRegex = /^[1-9][0-9]{10}$/
+      if (!tcRegex.test(tc)) {
+        Notify.create({ message: 'Geçersiz T.C. Kimlik Numarası!', color: 'negative', position: 'top' })
+        personnelData.tcNumber = ''
+      }
+    }
 
     // Backend'e kaydetme fonksiyonu
     const addOrUpdatePersonnel = async () => {
       try {
+        const token = localStorage.getItem('token') // LocalStorage'dan token al
+
+        if (!token) {
+          console.error('Token bulunamadı, giriş yapmalısınız.')
+          Notify.create({ message: 'Yetkisiz işlem! Lütfen giriş yapınız.', color: 'negative', position: 'top' })
+          return
+        }
+
         const formData = new FormData()
 
         // Form verilerini FormData'ya ekle
         formData.append('name', personnelData.name)
         formData.append('surname', personnelData.surname)
+        formData.append('email', personnelData.email)
+        formData.append('password', personnelData.password)
         formData.append('tcNumber', personnelData.tcNumber)
         formData.append('title', personnelData.title)
         formData.append('branch', personnelData.branch)
         formData.append('phone', personnelData.phone)
         formData.append('address', personnelData.address)
+        formData.append('role', personnelData.role)
         // Dosya ekle
         if (selectedFile.value) {
           formData.append('file', selectedFile.value)
         }
 
         // Backend'e gönder
-        await axios.post('http://localhost:3000/api/personnel', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+        const response = await axios.post('http://localhost:3000/api/personnel', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
         })
-
-        Notify.create({ message: 'Kayıt başarılı!', color: 'positive', position: 'top' })
-        resetForm()
+        if (response.status === 201) {
+          Notify.create({ message: 'Kayıt başarılı!', color: 'positive', position: 'top' })
+          resetForm()
+        }
       } catch (error) {
         console.error('Kayıt hatası:', error)
-        Notify.create({ message: 'Kayıt sırasında bir hata oluştu!', color: 'negative', position: 'top' })
+        Notify.create({ message: 'Kayıt sırasında bir hata oluştu! Aynı Tc ile kayıtlı biri olabilir!', color: 'negative', position: 'top' })
       }
     }
 
@@ -85,11 +132,14 @@ export default defineComponent({
       Object.assign(personnelData, {
         name: '',
         surname: '',
+        email: '',
+        password: '',
         tcNumber: '',
         title: '',
         branch: '',
         phone: '',
-        address: ''
+        address: '',
+        role: 'personnel'
       })
       selectedFile.value = null
     }
@@ -98,7 +148,9 @@ export default defineComponent({
       personnelData,
       selectedFile,
       addOrUpdatePersonnel,
-      resetForm
+      resetForm,
+      roleOptions,
+      validateTCNumber
     }
   }
 })
@@ -130,7 +182,8 @@ export default defineComponent({
 }
 
 .q-field-row > .q-input,
-.q-field-row > .q-file {
+.q-field-row > .q-file ,
+.q-field-row > .q-select{
   flex: 1;
 }
 

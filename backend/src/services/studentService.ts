@@ -17,7 +17,7 @@ export const getStudentById = async (id: string): Promise<IStudent | null> => {
 }
 // Aktif öğrencileri getiren fonksiyon
 export const getActiveStudents = async (): Promise<IStudent[]> => {
-  return await StudentModel.find({ status: 'main' })
+  return await StudentModel.find({ status: 'Asil' })
 }
 
 // Öğrenci güncelleme

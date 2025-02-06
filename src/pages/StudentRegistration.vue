@@ -100,9 +100,9 @@ export default defineComponent({
       { label: '0-', value: '0-' }
     ]
     const statusOptions = [
-      { label: 'Aktif', value: 'main' },
-      { label: 'Sıradaki', value: 'waiting' },
-      { label: 'Pasif', value: 'inactive' }
+      { label: 'Aktif', value: 'Asil' },
+      { label: 'Sıradaki', value: 'Sıradaki' },
+      { label: 'Pasif', value: 'Pasif' }
     ]
     const educationOptions = [
       { label: 'Bireysel', value: 'Bireysel' },
@@ -121,7 +121,15 @@ export default defineComponent({
     // Formu Gönderme Fonksiyonu
     const addOrUpdateStudent = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:3000/api/students/check-tc/${studentData.tcNumber}`)
+        const token = localStorage.getItem('token') // Token'ı localStorage'dan al
+        if (!token) {
+          throw new Error('Token bulunamadı! Lütfen giriş yapın.')
+        }
+        const { data } = await axios.get(`http://localhost:3000/api/students/check-tc/${studentData.tcNumber}`, {
+          headers: {
+            Authorization: `Bearer ${token}` // Token'ı header'a ekle
+          }
+        })
         if (data.exists) {
           Notify.create({ message: 'Bu T.C. kimlik numarası zaten kayıtlı!', color: 'negative', position: 'top' })
           return
@@ -150,9 +158,11 @@ export default defineComponent({
 
         // Backend'e istek gönder
         await axios.post('http://localhost:3000/api/students', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`// Header'a token ekle
+          }
         })
-
         Notify.create({ message: 'Kayıt başarılı!', color: 'positive', position: 'top' })
         resetForm()
       } catch (error) {

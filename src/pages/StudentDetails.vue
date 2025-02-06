@@ -68,7 +68,7 @@ export default defineComponent({
     const route = useRoute()
     const router = useRouter()
     const student = ref<Student | null>(null)
-    const id = route.params.id as string
+    const id = route.params.id as string // id'yi doğrudan string olarak al
 
     // Öğrenci Detaylarını Getir
     const fetchStudentDetails = async () => {
@@ -83,7 +83,7 @@ export default defineComponent({
 
     // Geri Dönüş
     const goBack = () => {
-      router.push('/student-list') // Öğrenci listesine geri yönlendir
+      router.push('/main/student-list') // Öğrenci listesine geri yönlendir
     }
 
     onMounted(fetchStudentDetails)

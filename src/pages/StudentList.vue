@@ -3,6 +3,7 @@
     <!-- Üst Araç Çubuğu -->
     <div class="q-mb-md row items-center justify-between">
       <q-btn
+        v-if="userRole === 'admin'"
         label="Yeni Kayıt"
         color="primary"
         icon="add"
@@ -29,13 +30,13 @@
           <q-item clickable @click="applyFilter('')">
             <q-item-section>Hepsi</q-item-section>
           </q-item>
-          <q-item clickable @click="applyFilter('main')">
+          <q-item clickable @click="applyFilter('Asil')">
             <q-item-section>Aktif Öğrenciler</q-item-section>
           </q-item>
-          <q-item clickable @click="applyFilter('waiting')">
+          <q-item clickable @click="applyFilter('Sıradaki')">
             <q-item-section>Sıradaki Öğrenciler</q-item-section>
           </q-item>
-          <q-item clickable @click="applyFilter('inactive')">
+          <q-item clickable @click="applyFilter('Pasif')">
             <q-item-section>Pasif Öğrenciler</q-item-section>
           </q-item>
           <q-item clickable @click="redirectToServicePage()">
@@ -283,28 +284,10 @@
 
         <!-- Düzenle ve Sil Butonları -->
         <q-card-actions align="right">
-          <q-btn
-            v-if="!isEditMode"
-            flat
-            label="Düzenle"
-            color="primary"
-            @click="isEditMode = true"
-          />
-          <q-btn
-            v-if="isEditMode"
-            flat
-            label="Kaydet"
-            color="primary"
-            @click="updateStudent"
-          />
-          <q-btn
-            v-if="isEditMode"
-            flat
-            label="Vazgeç"
-            color="secondary"
-            @click="isEditMode = false"
-          />
-          <q-btn flat label="Sil" color="red" @click="confirmDelete" />
+          <q-btn v-if="!isEditMode && userRole !== 'personnel'" flat label="Düzenle" color="primary" @click="isEditMode = true" />
+          <q-btn v-if="isEditMode && userRole !== 'personnel'" flat label="Kaydet" color="primary" @click="updateStudent" />
+          <q-btn v-if="isEditMode && userRole !== 'personnel'" flat label="Vazgeç" color="secondary" @click="isEditMode = false" />
+          <q-btn v-if="userRole !== 'personnel'" flat label="Sil" color="red" @click="confirmDelete" />
           <q-btn flat label="Kapat" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -329,7 +312,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import api from 'src/utils/axiosInstance'
 import { format } from 'date-fns'
 import StudentRegistration from './StudentRegistration.vue' // Yeni Kayıt bileşeni
 import { useRouter } from 'vue-router'
@@ -351,7 +334,7 @@ interface Student {
   createdAt: string;
   imageUrl?: string;
   blood: string;
-  status: 'main' | 'waiting' | 'inactive';
+  status: 'Asil' | 'Sıradaki' | 'Pasif';
 }
 
 export default defineComponent({
@@ -366,6 +349,7 @@ export default defineComponent({
     const isDeleteDialogOpen = ref(false)
     const searchQuery = ref('')
     const selectedFilter = ref('')
+    const userRole = ref('') // Kullancı rolünü tutacak
     const allStudents = ref<Student[]>([])
     const filteredStudents = computed(() => {
       let filtered = students.value
@@ -403,7 +387,7 @@ export default defineComponent({
       createdAt: '',
       imageUrl: '',
       blood: '',
-      status: 'main'
+      status: 'Asil'
     })
     const isLoading = ref(true)
     const bloodOptions = [
@@ -417,9 +401,9 @@ export default defineComponent({
       { label: '0-', value: '0-' }
     ]
     const statusOptions = [
-      { label: 'Asıl Öğrenci', value: 'main' },
-      { label: 'Sıradaki Öğrenci', value: 'waiting' },
-      { label: 'Pasif', value: 'inactive' }
+      { label: 'Asil Öğrenci', value: 'Asil' },
+      { label: 'Sıradaki Öğrenci', value: 'Sıradaki' },
+      { label: 'Pasif', value: 'Pasif' }
     ]
     const vehicleOptions = [
       { label: 'Evet', value: 'Evet' },
@@ -447,7 +431,12 @@ export default defineComponent({
 
     const fetchStudents = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/students')
+        const token = localStorage.getItem('token')
+        if (token) {
+          const decodedToken = JSON.parse(atob(token.split('.')[1]))
+          userRole.value = decodedToken.role // Token'dan kullanıcı rolünü al
+        }
+        const response = await api.get('/students')
         students.value = response.data
         allStudents.value = response.data
       } catch (error) {
@@ -462,7 +451,7 @@ export default defineComponent({
     }
 
     const redirectToServicePage = () => {
-      router.push('/service-list') // Rota yolunu belirleyin
+      router.push('/main/service-list') // Rota yolunu belirleyin
     }
 
     const onStudentAdded = () => {
@@ -476,13 +465,7 @@ export default defineComponent({
     const updateStudent = async () => {
       if (selectedStudent.value) {
         try {
-          const response = await axios.put(
-        `http://localhost:3000/api/students/${selectedStudent.value._id}`,
-        selectedStudent.value
-          )
-
-          console.log('Güncelleme başarılı:', response.data)
-
+          await api.put(`/students/${selectedStudent.value._id}`, selectedStudent.value)
           const index = students.value.findIndex(
             (s) => s._id === selectedStudent.value?._id
           )
@@ -503,22 +486,20 @@ export default defineComponent({
       isDeleteDialogOpen.value = true
     }
     const statusText = (status: string) => {
-      if (status === 'main') {
+      if (status === 'Asil') {
         return 'Asil Öğrenci'
-      } else if (status === 'waiting') {
+      } else if (status === 'Sıradaki') {
         return 'Sıradaki Öğrenci'
-      } else if (status === 'inactive') {
-        return 'Pasif'
+      } else if (status === 'Pasif') {
+        return 'Pasif Öğrenci'
       }
       return 'Bilinmiyor'
     }
     const deleteStudent = async () => {
       if (selectedStudent.value) {
         try {
-          await axios.delete(`http://localhost:3000/api/students/${selectedStudent.value._id}`)
-          students.value = students.value.filter(
-            (s) => s._id !== selectedStudent.value?._id
-          )
+          await api.delete(`/students/${selectedStudent.value._id}`)
+          students.value = students.value.filter((s) => s._id !== selectedStudent.value?._id)
 
           isPopupOpen.value = false
           isDeleteDialogOpen.value = false
@@ -634,7 +615,8 @@ export default defineComponent({
       confirmDelete,
       showStudentDetails,
       printPage,
-      searchQuery
+      searchQuery,
+      userRole
 
     }
   }

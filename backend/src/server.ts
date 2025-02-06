@@ -4,7 +4,9 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import router from '../src/router' // Doğru yolu kontrol edin
 import path from 'path'
+import dotenv from 'dotenv'
 
+dotenv.config()
 const app = express()
 const PORT = 3000
 
@@ -21,7 +23,10 @@ mongoose
 // Rotalar
 app.use('/api', router) // Burada rotaları kontrol edin
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+const uploadsPath = path.resolve(__dirname, '../uploads')
+console.log('Servis edilen uploads dizini:', uploadsPath)
+
+app.use('/uploads', express.static(uploadsPath))
 
 // Sunucuyu başlat
 app.listen(PORT, () => {

@@ -19,6 +19,10 @@ module.exports = configure(function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [''],
+    htmlVariables: {
+      title: 'Engelsiz Yaşam Alanı', // Buradaki başlık istediğiniz gibi değişebilir.
+      favicon: '/elogo.png'
+    },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [

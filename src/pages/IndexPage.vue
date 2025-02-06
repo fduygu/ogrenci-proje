@@ -40,7 +40,7 @@
     <q-td
       v-for="personnel in personnelOptions"
       :key="personnel._id"
-      :class="['with-border', { 'bg-green': props.row[personnel._id]?.isVehicle }]" class="cell-content">
+      :class="['with-border', { 'bg-green': !isPrintMode && props.row[personnel._id]?.isVehicle , 'bg-grey-print': isPrintMode && props.row[personnel._id]?.isVehicle }]" class="cell-content">
       <template v-if="props.row[personnel._id] !== 'Boş'">
         <span
           v-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length > 1" class="group-text">
@@ -55,9 +55,9 @@
           v-else-if="Array.isArray(props.row[personnel._id]?.studentNames) && props.row[personnel._id]?.studentNames.length === 1" class="single-student">
           {{ props.row[personnel._id]?.studentNames[0] }}
         </span>
-        <span v-else>Boş</span>
+        <span v-else></span>
       </template>
-      <template v-else>Boş</template>
+      <template v-else></template>
     </q-td>
   </tr>
 </template>
@@ -70,8 +70,7 @@
 </template>
 
 <script>
-import axios from 'axios'
-
+import api from 'src/utils/axiosInstance'
 export default {
   data () {
     return {
@@ -81,58 +80,59 @@ export default {
       rows: [],
       schedules: [],
       processedRows: [], // Gün separatorlarıyla birlikte işlenmiş satırlar
-      pagination: { rowsPerPage: 0 } // Varsayılan olarak tüm verileri göster
+      pagination: { rowsPerPage: 0 }, // Varsayılan olarak tüm verileri göster
+      isPrintMode: false // Yazdırma sırasında tetiklenecek
     }
   },
   methods: {
     printPage () {
-      const printContent = document.querySelector('.print-area')
+      this.isPrintMode = true // Yazdırma modunu aktif et
 
-      if (!printContent) {
-        console.error('Yazdırma için hedef alan bulunamadı!')
-        return
-      }
+      this.$nextTick(() => {
+        // Vue güncellendikten sonra yazdırma işlemini başlat
+        const printContent = document.querySelector('.print-area')
 
-      // Yeni bir print penceresi aç
-      const newWindow = window.open('', '', 'width=900,height=700')
-      newWindow.document.write(`
+        if (!printContent) {
+          console.error('Yazdırma için hedef alan bulunamadı!')
+          return
+        }
+
+        // Yazdırma penceresini aç
+        const newWindow = window.open('', '', 'width=900,height=700')
+        newWindow.document.write(`
       <html>
         <head>
           <title>Ders Programı</title>
           <style>
             @media print {
               @page {
-                size: A4 portrait; /* Sayfayı A4 formatında dikey yap */
-                margin: 10px; /* Kenar boşluklarını azalt */
+                size: A4 portrait;
+                margin: 10px;
               }
-              
               body {
                 font-family: Arial, sans-serif;
-                font-size: 12px; /* Yazıları küçült */
+                font-size: 12px;
               }
-
               table {
-                width: 100%; /* Tüm tabloyu ekrana yay */
+                width: 100%;
                 height: 100%;
                 border-collapse: collapse;
-                font-size: 10px; /* Yazıları küçült */
+                font-size: 10px;
               }
-
               th, td {
                 border: 1px solid #000;
-                padding: 4px; /* Hücreleri küçült */
+                padding: 4px;
                 text-align: center;
-                white-space: nowrap; /* Taşmaları engelle */
+                white-space: nowrap;
               }
-
               .bg-light-blue {
                 background-color: #d9edf7;
                 font-weight: bold;
               }
-
-              .bg-green {
-                background-color: #88e88b;
-                color: #000;
+              /* Yazdırma sırasında servis kullananları gri yap */
+              .bg-grey-print {
+                background-color: #b0b0b0 !important;
+                color: #000 !important;
                 font-weight: bold;
               }
             }
@@ -143,10 +143,15 @@ export default {
         </body>
       </html>
     `)
-      newWindow.document.close()
-      newWindow.focus()
-      newWindow.print()
-      newWindow.close()
+
+        newWindow.document.close()
+        newWindow.focus()
+        newWindow.print()
+        newWindow.close()
+
+        // Yazdırma işlemi tamamlandıktan sonra tekrar normal moda geç
+        this.isPrintMode = false
+      })
     },
     getMonthName (date) {
       const monthNames = [
@@ -174,7 +179,8 @@ export default {
     // Verileri backend'den çek
     async fetchData () {
       try {
-        const personnelResponse = await axios.get('http://localhost:3000/api/personnel')
+        // 📌 Personelleri çek
+        const personnelResponse = await api.get('/personnel')
         this.personnelOptions = personnelResponse.data.map((personnel) => ({
           ...personnel,
           name: personnel.name.toUpperCase() // Adı büyük harfe dönüştür
@@ -206,9 +212,10 @@ export default {
         }
         this.rows = times
 
-        // Planlama bilgilerini al
-        const scheduleResponse = await axios.get('http://localhost:3000/api/schedules')
+        // 📌 Planlama bilgilerini al
+        const scheduleResponse = await api.get('/schedules')
         this.schedules = scheduleResponse.data
+        console.log('✅ Planlama Verileri:', this.schedules)
 
         // Gelen verileri tabloya aktar
         this.rows.forEach((row) => {
@@ -325,6 +332,11 @@ export default {
   .print-btn-container {
     display: none; /* Yazdırma sırasında butonu gizle */
   }
+  .bg-green {
+    background-color: #b0b0b0 !important; /* Yeşil olanları gri yap */
+    color: #000 !important;
+    font-weight: bold;
+  }
   @page {
     size: A4 portrait; /* Sayfayı A4 boyutuna getir */
     margin: 10px; /* Kenar boşluklarını azalt */
@@ -355,6 +367,11 @@ export default {
   }
   .print-btn-container {
     display: none; /* Yazdırma sırasında butonu gizle */
+  }
+  .bg-grey-print {
+    background-color: #b0b0b0 !important; /* Gri */
+    color: #000 !important;
+    font-weight: bold;
   }
 }
 /* Çıktı Al butonunu sağ alt köşeye hizalar */

@@ -10,19 +10,20 @@ import {
 } from '../controller/studentController'
 import ScheduleController from '../controller/scheduleController' // ScheduleController için import
 import upload from '../middleware/uploadMiddleware' // Fotoğraf yükleme middleware
+import { authenticateToken, authenticateAdmin } from '../middleware/authMiddleware' // AuthMiddleware import et
 
 const router = express.Router()
 
-router.get('/', getAllStudents)
+router.get('/', authenticateToken, getAllStudents)
 
 // Fotoğraf yükleme middleware eklenmiş versiyon
-router.post('/', upload.single('file'), createStudent)
-router.put('/:id', upload.single('file'), updateStudent)
-router.delete('/:id', deleteStudent)
+router.post('/', authenticateToken, authenticateAdmin, upload.single('file'), createStudent)
+router.put('/:id', authenticateToken, authenticateAdmin, upload.single('file'), updateStudent)
+router.delete('/:id', authenticateToken, authenticateAdmin, deleteStudent)
 router.get('/students-with-service', (req, res, next) => {
   next()
-}, getStudentsWithService)
-router.get('/:studentId/schedules', ScheduleController.getSchedulesByStudent)
-router.get('/active-students', getActiveStudents)
-router.get('/check-tc/:tcNumber', checkTCNumber)
+}, authenticateToken, getStudentsWithService)
+router.get('/:studentId/schedules', authenticateToken, ScheduleController.getSchedulesByStudent)
+router.get('/active-students', authenticateToken, getActiveStudents)
+router.get('/check-tc/:tcNumber', authenticateToken, checkTCNumber)
 export default router
