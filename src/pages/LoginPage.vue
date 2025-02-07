@@ -92,7 +92,7 @@ export default defineComponent({
     }
 
     const forgotPassword = () => {
-      router.push('/forgot-password')
+      router.push('/auth/forgot-password')
     }
 
     return { email, password, login, forgotPassword, errorMessage }
