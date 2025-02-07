@@ -37,13 +37,10 @@ export default defineComponent({
     // 📌 Sayfa yüklendiğinde token var mı kontrol et
     onMounted(() => {
       const token = localStorage.getItem('token')
-      console.log('📢 Tarayıcıda Kayıtlı Token:', token)
       if (token) {
-        console.log('🔄 Kullanıcı zaten giriş yapmış, yönlendiriliyor...')
         router.push('/')
       }
     })
-    console.log('💡 Login fonksiyonu çalıştı!')
     const login = async () => {
       try {
         errorMessage.value = ''
@@ -53,10 +50,8 @@ export default defineComponent({
           email: email.value,
           password: password.value
         })
-
-        console.log('✅ API Response:', response.data)
-
-        if (response.data.token) {
+        // ✅ Token kontrolü
+        if (response.data && response.data.token) {
           console.log('✅ Token Kaydediliyor:', response.data.token)
           localStorage.setItem('token', response.data.token)
 
@@ -70,27 +65,23 @@ export default defineComponent({
               email: personnel.email,
               role: personnel.role,
               imageUrl: personnel.imageUrl ? `http://localhost:3000${personnel.imageUrl}` : '/default-avatar.png'
-
             }
-            localStorage.setItem('personnel', JSON.stringify(personnelData)) // 🔥 Burada personnel olarak kaydediyoruz!
-            console.log('Gelen personel bilgisi:', localStorage.getItem(personnel.value))
+            localStorage.setItem('personnel', JSON.stringify(personnelData))
           } else {
-            console.error('🚨 personnel verisi bulunamadı!')
+            console.error('personnel verisi bulunamadı!')
           }
 
-          console.log('🔄 Kullanıcı yönlendiriliyor...')
-          setTimeout(() => {
-            router.push('/main')
-          }, 500)
+          console.log('Kullanıcı yönlendiriliyor...')
+          router.push('/main')
         } else {
-          console.error('🚨 Giriş başarısız, token alınamadı.')
+          console.error('Giriş başarısız, token alınamadı.')
+          errorMessage.value = 'Giriş başarısız, token alınamadı.'
         }
       } catch (error) {
-        console.error('❌ Giriş hatası:', error)
+        console.error('Giriş hatası:', error)
         errorMessage.value = 'E-Posta veya şifre hatalı. Lütfen tekrar deneyin!'
       }
     }
-
     const forgotPassword = () => {
       router.push('/auth/forgot-password')
     }

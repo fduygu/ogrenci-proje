@@ -8,10 +8,9 @@ import nodemailer from 'nodemailer'
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body
-    const personnel = await Personnel.findOne({ email }).select('+password')
 
+    const personnel = await Personnel.findOne({ email }).select('+password')
     if (!personnel) {
-      console.log('Kullanıcı bulunamadı:', email)
       return res.status(400).json({ message: 'Geçersiz e-posta veya şifre' })
     }
 
@@ -19,30 +18,34 @@ export const login = async (req: Request, res: Response) => {
     if (!isMatch) {
       return res.status(400).json({ message: 'Geçersiz e-posta veya şifre' })
     }
-    const userRole = typeof personnel.role === 'string' ? personnel.role : 'personnel'
-    // **✅ Token oluştur ve kullanıcıya dön**
+
+    // ✅ Token oluşturma
     const token = jwt.sign(
       { id: personnel._id, email: personnel.email, role: personnel.role },
-      process.env.JWT_SECRET || 'default_secret_key', // Eğer .env yüklenmezse, varsayılan bir değer kullan
-      { expiresIn: '1h' } // Token 1 saat geçerli olacak
+      process.env.JWT_SECRET || 'default_secret_key',
+      { expiresIn: '1h' }
     )
-    return res.status(200).json({
+
+    console.log('Oluşturulan Token:', token) // Token'in gerçekten oluşup oluşmadığını kontrol etmek için
+
+    res.status(200).json({
       message: 'Giriş başarılı',
+      token, // Token'i frontend'e gönderiyoruz
       personnel: {
         id: personnel._id,
         name: personnel.name,
         surname: personnel.surname,
         email: personnel.email,
-        role: userRole,
-        imageUrl: personnel.imageUrl || 'https://www.w3schools.com/howto/img_avatar.png'// Varsayılan resim
-      },
-      token
+        role: personnel.role,
+        imageUrl: personnel.imageUrl
+      }
     })
   } catch (error) {
     console.error('Giriş hatası:', error)
     return res.status(500).json({ message: 'Sunucu hatası' })
   }
 }
+
 // ** Şifremi Unuttum (Şifre Sıfırlama)**
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
@@ -68,15 +71,15 @@ export const forgotPassword = async (req: Request, res: Response) => {
         pass: process.env.EMAIL_PASS
       }
     })
-
-    const mailOptions = {
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: personnel.email,
       subject: 'Şifre Sıfırlama Talebi',
-      text: `Merhaba ${personnel.name},\n\nŞifrenizi sıfırlamak için aşağıdaki bağlantıya tıklayın:\n${resetLink}\n\nBu bağlantı 15 dakika içinde geçerliliğini yitirecektir.`
-    }
-
-    await transporter.sendMail(mailOptions)
+      html: `<p>Merhaba ${personnel.name},</p>
+      <p>Şifrenizi sıfırlamak için aşağıdaki bağlantıya tıklayın:</p>
+      <a href="${resetLink}">${resetLink}</a>
+      <p>Bu bağlantı 1 saat içinde geçerliliğini yitirecektir.</p>`
+    })
 
     res.status(200).json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi!' })
   } catch (error) {
@@ -91,46 +94,39 @@ export const resetPassword = async (req: Request, res: Response) => {
     const { token } = req.params
     const { newPassword } = req.body
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-      id: string;
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string }
+    const personnel = await Personnel.findById(decoded.id).select('+password')
 
-    const personnel = await Personnel.findById(decoded.id)
     if (!personnel) {
       return res.status(400).json({ message: 'Geçersiz veya süresi dolmuş token!' })
     }
 
-    const salt = await bcrypt.genSalt(10)
-    personnel.password = await bcrypt.hash(newPassword, salt)
-    await personnel.save()
+    console.log('Eski Şifre (Hashli):', personnel.password)
 
-    res.status(200).json({ message: 'Şifre başarıyla sıfırlandı.' })
-  } catch (error) {
-    res.status(500).json({ message: 'Şifre sıfırlama işlemi başarısız oldu!' })
-  }
-}
+    // ✅ Aynı şifre olup olmadığını kontrol et
+    const isSamePassword = await bcrypt.compare(newPassword, personnel.password)
+    console.log('Yeni Şifre Eski Şifre ile Aynı mı?', isSamePassword)
 
-// ** Kullanıcı Şifresini Güncelleme (Mevcut Kullanıcı)**
-export const changePassword = async (req: Request, res: Response) => {
-  try {
-    const { email, oldPassword, newPassword } = req.body
-
-    const personnel = await Personnel.findOne({ email }).select('+password')
-    if (!personnel) {
-      return res.status(400).json({ message: 'Kullanıcı bulunamadı' })
+    if (isSamePassword) {
+      return res.status(400).json({ message: 'Yeni şifre eski şifreyle aynı olamaz!' })
     }
 
-    const isMatch = await bcrypt.compare(oldPassword, personnel.password)
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Mevcut şifre yanlış' })
-    }
+    // ✅ Şifreyi hashle (bcrypt ile)
+    const salt = await bcrypt.genSalt(10) // Tutarlı bir salt rounds değeri
+    const hashedPassword = await bcrypt.hash(newPassword, salt)
+    console.log('Veritabanına Kaydedilmeden Önce Hash:', hashedPassword)
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    // ✅ Şifreyi kaydet
     personnel.password = hashedPassword
     await personnel.save()
 
-    res.status(200).json({ message: 'Şifre başarıyla güncellendi' })
+    // ✅ Veritabanından tekrar çekerek doğrula
+    const updatedPersonnel = await Personnel.findById(personnel._id).select('+password')
+    console.log('Veritabanından Tekrar Çekilen Hash:', updatedPersonnel?.password)
+
+    res.status(200).json({ message: 'Şifre başarıyla sıfırlandı.' })
   } catch (error) {
-    res.status(500).json({ message: 'Şifre güncellenirken hata oluştu', error })
+    console.error('Şifre sıfırlama hatası:', error)
+    res.status(500).json({ message: 'Şifre sıfırlama işlemi başarısız oldu!' })
   }
 }

@@ -1,6 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose'
-import bcrypt from 'bcryptjs'
-
 export interface IPersonnel extends Document {
   name: string
   surname: string
@@ -32,12 +30,4 @@ const PersonnelSchema = new Schema<IPersonnel>({
 { timestamps: true } // Otomatik olarak createdAt ve updatedAt alanlarını ekler
 
 )
-// Şifreyi kaydetmeden önce hashle
-PersonnelSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next()
-  const salt = await bcrypt.genSalt(10)
-  this.password = await bcrypt.hash(this.password, salt)
-  next()
-})
-
 export default mongoose.model<IPersonnel>('Personnel', PersonnelSchema)

@@ -16,7 +16,7 @@
         </q-card-section>
 
         <q-card-section>
-          <q-btn label="Geri Dön" flat @click="$router.push('/#/auth/login')" />
+          <q-btn label="Geri Dön" flat @click="$router.push('/auth/login')" />
         </q-card-section>
       </q-card>
     </q-page>
@@ -39,7 +39,7 @@ export default defineComponent({
       try {
         await api.post(`/auth/reset-password/${token}`, { newPassword: newPassword.value })
         alert('Şifre başarıyla güncellendi, giriş yapabilirsiniz!')
-        router.push('/login')
+        router.push('/auth/login')
       } catch (error: unknown) {
         const err = error as { response?: { data?: string } }
         console.error('🚨 Hata:', err.response?.data || err)
