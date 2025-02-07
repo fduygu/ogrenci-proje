@@ -26,23 +26,42 @@
         icon="filter_list"
         class="col-auto"
       >
-        <q-list>
-          <q-item clickable @click="applyFilter('')">
-            <q-item-section>Hepsi</q-item-section>
-          </q-item>
-          <q-item clickable @click="applyFilter('Asil')">
-            <q-item-section>Aktif Öğrenciler</q-item-section>
-          </q-item>
-          <q-item clickable @click="applyFilter('Sıradaki')">
-            <q-item-section>Sıradaki Öğrenciler</q-item-section>
-          </q-item>
-          <q-item clickable @click="applyFilter('Pasif')">
-            <q-item-section>Pasif Öğrenciler</q-item-section>
-          </q-item>
-          <q-item clickable @click="redirectToServicePage()">
-            <q-item-section>Servis Kullananlar</q-item-section>
-           </q-item>
-        </q-list>
+      <q-list>
+        <q-item clickable @click="applyFilter('')">
+      <q-item-section avatar>
+        <q-icon name="format_list_bulleted" color="blue" />
+      </q-item-section>
+      <q-item-section>Hepsi</q-item-section>
+    </q-item>
+
+    <q-item clickable @click="applyFilter('Asil')">
+      <q-item-section avatar>
+        <q-icon name="check_circle" color="green" />
+      </q-item-section>
+      <q-item-section>Aktif Öğrenciler</q-item-section>
+    </q-item>
+
+    <q-item clickable @click="applyFilter('Sıradaki')">
+      <q-item-section avatar>
+        <q-icon name="hourglass_top" color="orange" />
+      </q-item-section>
+      <q-item-section>Sıradaki Öğrenciler</q-item-section>
+    </q-item>
+
+    <q-item clickable @click="applyFilter('Pasif')">
+      <q-item-section avatar>
+        <q-icon name="pause_circle" color="grey" />
+      </q-item-section>
+      <q-item-section>Pasif Öğrenciler</q-item-section>
+    </q-item>
+
+    <q-item clickable @click="redirectToServicePage()">
+      <q-item-section avatar>
+        <q-icon name="commute" color="teal" />
+      </q-item-section>
+      <q-item-section>Servis Kullananlar</q-item-section>
+    </q-item>
+  </q-list>
       </q-btn-dropdown>
     </div>
 
@@ -335,6 +354,7 @@ interface Student {
   imageUrl?: string;
   blood: string;
   status: 'Asil' | 'Sıradaki' | 'Pasif';
+  isActive: boolean;
 }
 
 export default defineComponent({
@@ -387,7 +407,8 @@ export default defineComponent({
       createdAt: '',
       imageUrl: '',
       blood: '',
-      status: 'Asil'
+      status: 'Asil',
+      isActive: true
     })
     const isLoading = ref(true)
     const bloodOptions = [
@@ -453,7 +474,6 @@ export default defineComponent({
     const redirectToServicePage = () => {
       router.push('/main/service-list') // Rota yolunu belirleyin
     }
-
     const onStudentAdded = () => {
       fetchStudents()
     }
@@ -617,7 +637,6 @@ export default defineComponent({
       printPage,
       searchQuery,
       userRole
-
     }
   }
 })

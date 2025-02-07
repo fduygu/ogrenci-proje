@@ -23,7 +23,7 @@ export const createStudent = async (req: Request, res: Response) => {
       education = req.body.education.map((item: EducationItem) => item.value || item)
     }
     // Gelen veriye fotoğraf URL'sini ekle
-    const studentData = { ...req.body, imageUrl, education, status: req.body.status || 'Asil' }
+    const studentData = { ...req.body, imageUrl, education, status: req.body.status || 'Asil', isActive: true }
 
     // Öğrenci oluşturma servisini çağır
     const savedStudent = await StudentService.createStudent(studentData)
@@ -99,14 +99,19 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
 // Öğrenci silme
 export const deleteStudent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const deletedStudent = await StudentService.deleteStudent(req.params.id)
-    if (!deletedStudent) {
+    const studentId = req.params.id
+    const updatedStudent = await StudentService.updateStudent(studentId, { isActive: false })
+
+    console.log('Silinen öğrenci:', updatedStudent) // Konsola log ekle
+
+    if (!updatedStudent) {
       res.status(404).json({ message: 'Öğrenci bulunamadı' })
       return
     }
-    res.status(200).json({ message: 'Öğrenci silindi', student: deletedStudent })
+    res.status(200).json({ message: 'Öğrenci başarıyla silindi.', student: updatedStudent })
   } catch (error) {
-    res.status(500).json({ message: 'Öğrenci silinirken bir hata oluştu', error })
+    console.error('Silme işlemi sırasında hata oluştu:', error)
+    res.status(500).json({ message: 'Silme işlemi sırasında hata oluştu', error })
   }
 }
 export const getStudentsWithService = async (req: Request, res: Response) => {

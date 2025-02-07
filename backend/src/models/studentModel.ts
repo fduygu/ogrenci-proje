@@ -17,6 +17,7 @@ export interface IStudent extends Document {
   createdAt?: Date // Kayıt tarihi
   blood: string
   status: 'Asil' | 'Sıraki' | 'Pasif'
+  isActive: boolean
 }
 
 const StudentSchema = new Schema<IStudent>({
@@ -34,7 +35,9 @@ const StudentSchema = new Schema<IStudent>({
   education: { type: [String], required: true },
   imageUrl: { type: String, required: false },
   blood: { type: String, required: false },
-  status: { type: String, enum: ['Asil', 'Sıradaki', 'Pasif'], default: 'Asil' } // Güncellenmiş "status" alanı
+  status: { type: String, enum: ['Asil', 'Sıradaki', 'Pasif'], default: 'Asil' }, // Güncellenmiş "status" alanı
+  isActive: { type: Boolean, default: true }
+
 },
 { timestamps: true } // Otomatik olarak createdAt ve updatedAt alanlarını ekler
 

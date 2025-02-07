@@ -14,6 +14,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'understudy', component: () => import('pages/UnderStudyRegistration.vue') },
       { path: 'understudy-list', component: () => import('pages/UnderStudyList.vue') },
       { path: 'inactivestudy-list', component: () => import('pages/InactiveStudyList.vue') },
+      { path: 'deleted-students', component: () => import('pages/DeletedStudents.vue') },
       { path: 'personel', component: () => import('pages/PersonnelRegistration.vue') },
       { path: 'student-list', component: () => import('pages/StudentList.vue') },
       { path: 'personnel-list', component: () => import('pages/PersonnelList.vue') },
