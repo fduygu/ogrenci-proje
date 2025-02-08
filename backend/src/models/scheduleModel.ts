@@ -4,8 +4,8 @@ import mongoose, { Document } from 'mongoose'
 export interface ISchedule extends Document {
   personnelId: string;
   personnelName: string;
-  studentIds: string;
-  studentNames: string;
+  studentIds: string[];
+  studentNames: string [];
   studentVehicle: string; // Servis bilgisi alanı
   date: Date;
   time: string;

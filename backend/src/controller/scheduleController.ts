@@ -196,7 +196,7 @@ class ScheduleController {
   updateSchedule = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
-      const { personnelId, studentId, note } = req.body
+      const { personnelId, studentIds, note } = req.body
 
       // Mevcut kaydı bul
       const schedule = await Schedule.findById(id)
@@ -217,16 +217,18 @@ class ScheduleController {
       }
 
       // Öğrenci bilgilerini güncelle
-      if (studentId && studentId !== schedule.studentIds) {
-        const student = await StudentModel.findById(studentId)
-        if (!student) {
-          res.status(404).json({ message: 'Öğrenci bulunamadı!' })
+      if (studentIds && studentIds.length > 0) {
+        const students = await StudentModel.find({ _id: { $in: studentIds } })
+        if (!students || students.length === 0) {
+          res.status(404).json({ message: 'Öğrenciler bulunamadı!' })
           return
         }
-        schedule.studentIds = studentId
-        schedule.studentNames = `${student.name} ${student.surname}`
+        schedule.studentIds = studentIds
+        const studentNames = students.map(student => `${student.name} ${student.surname}`)
+        schedule.studentNames = studentNames
+        const hasVehicle = students.some(student => student.vehicle === 'Evet')
+        schedule.studentVehicle = hasVehicle ? 'Evet' : 'Hayır'
       }
-
       // Not bilgilerini güncelle
       if (note !== undefined) {
         schedule.note = note
