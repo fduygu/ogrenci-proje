@@ -30,12 +30,19 @@
         </q-td>
       </template>
       <template v-slot:body-cell-name="props">
-        <q-td :props="props">
-          <q-btn flat dense color="primary" @click="showStudentDetails(props.row)">
-            {{ props.row.name }}
-          </q-btn>
-        </q-td>
-      </template>
+          <q-td :props="props">
+            <q-btn
+              v-if="isAdmin"
+              flat
+              dense
+              color="primary"
+              @click="showStudentDetails(props.row)"
+            >
+              {{ props.row.name }}
+            </q-btn>
+            <span v-else>{{ props.row.name }}</span>
+          </q-td>
+        </template>
       <template v-slot:body-cell-surname="props">
         <q-td :props="props">
           {{ props.row.surname }}
@@ -80,6 +87,7 @@
               outlined
               label="Servis Kullanıyor mu?"
               dense
+              :disable="!isAdmin"
             />
           </div>
         </q-card-section>
@@ -121,7 +129,8 @@ export default defineComponent({
       { label: 'Evet', value: 'Evet' },
       { label: 'Hayır', value: 'Hayır' }
     ]
-
+    const user = JSON.parse(localStorage.getItem('personnel') || '{}')
+    const isAdmin = user.role === 'admin'
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
@@ -172,7 +181,7 @@ export default defineComponent({
     }
 
     const updateStudent = async () => {
-      if (selectedStudent.value) {
+      if (isAdmin && selectedStudent.value) {
         try {
           const token = localStorage.getItem('token') // Token'ı alıyoruz
           console.log('Token:', token) // Token'ı logla, doğru olup olmadığını görmek için
@@ -300,7 +309,8 @@ export default defineComponent({
       formatDate,
       statusText,
       printPage,
-      goBack // Geri fonksiyonunu ekledik
+      goBack, // Geri fonksiyonunu ekledik
+      isAdmin
     }
   }
 })
