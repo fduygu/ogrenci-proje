@@ -21,43 +21,43 @@ export default route(function () {
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
-  // **🛡️ Navigation Guard - Giriş kontrolü ve yönlendirme**
+  // ** Navigation Guard - Giriş kontrolü ve yönlendirme**
   Router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token')
     const isAuthPage = to.path.startsWith('/auth')
 
     if (!token) {
-      // 🛑 Giriş yapmamış ve giriş yapması gerekiyorsa, login sayfasına yönlendir
+      // Giriş yapmamış ve giriş yapması gerekiyorsa, login sayfasına yönlendir
       if (to.meta.requiresAuth) {
-        console.warn('🔴 Kullanıcı giriş yapmamış, login sayfasına yönlendiriliyor...')
+        console.warn('Kullanıcı giriş yapmamış, login sayfasına yönlendiriliyor...')
         return next('/auth/login')
       }
     } else {
       try {
-        console.log('📢 Token:', token)
         const decoded = jwtDecode<{ role?: string, exp?: number }>(token)
 
-        // **📌 Token süresi dolmuşsa oturumu kapat ve login'e yönlendir**
+        // **Token süresi dolmuşsa oturumu kapat ve login'e yönlendir**
         if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-          console.warn('⚠️ Token süresi dolmuş, çıkış yapılıyor...')
+          console.warn('Token süresi dolmuş, çıkış yapılıyor...')
           localStorage.removeItem('token')
           localStorage.removeItem('user')
           return next('/auth/login')
         }
 
-        // **🛑 Kullanıcı giriş yapmışsa, /auth sayfalarına gitmesini engelle**
+        // ** Kullanıcı giriş yapmışsa, /auth sayfalarına gitmesini engelle**
         if (isAuthPage) {
           console.warn('🔄 Kullanıcı zaten giriş yapmış, ana sayfaya yönlendiriliyor...')
           return next('/main')
         }
       } catch (error) {
-        console.error('🚨 Token çözümleme hatası:', error)
+        console.error('Token çözümleme hatası:', error)
         localStorage.removeItem('token') // Hatalı token varsa kaldır
+        localStorage.removeItem('user')
         return next('/auth/login')
       }
     }
 
-    // **✅ Tüm kontrollerden geçerse devam et**
+    // ** Tüm kontrollerden geçerse devam et**
     next()
   })
 

@@ -20,8 +20,7 @@ module.exports = configure(function (/* ctx */) {
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [''],
     htmlVariables: {
-      title: 'Engelsiz Yaşam Alanı', // Buradaki başlık istediğiniz gibi değişebilir.
-      favicon: '/elogo.png'
+      title: 'Engelsiz Yaşam Alanı'
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

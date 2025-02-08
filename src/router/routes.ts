@@ -3,11 +3,12 @@ import { RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/main' // Ana sayfayı yönlendiriyoruz
+    redirect: '/auth/login'
   },
   {
     path: '/main',
     component: () => import('layouts/MainLayout.vue'),
+    meta: { requiresAuth: true }, // Giriş yapılmadan erişimi engelle
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'register', component: () => import('pages/StudentRegistration.vue') },
