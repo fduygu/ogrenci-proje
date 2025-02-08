@@ -11,6 +11,7 @@ export interface IPersonnel extends Document {
   email: string;
   password: string;
   role?: string;
+  isActive: boolean;
   createdAt?: Date // Kayıt tarihi
 }
 
@@ -25,7 +26,8 @@ const PersonnelSchema = new Schema<IPersonnel>({
   address: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'personnel'], default: 'personnel' } // String olarak kaydedildi
+  role: { type: String, enum: ['admin', 'personnel'], default: 'personnel' }, // String olarak kaydedildi
+  isActive: { type: Boolean, default: true }
 },
 { timestamps: true } // Otomatik olarak createdAt ve updatedAt alanlarını ekler
 

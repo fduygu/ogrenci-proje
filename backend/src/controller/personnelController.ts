@@ -30,7 +30,8 @@ export const createPersonnel = async (req: Request, res: Response): Promise<void
       ...req.body,
       password, // Hashlenmiş şifreyi kaydediyoruz
       imageUrl, // Fotoğraf URL'sini ekle
-      role: userRole // Rolü belirle
+      role: userRole, // Rolü belirle
+      isActive: true
     }
     console.log('Veritabanına Kaydedilecek Veri:', personnelData)
     const savedPersonnel = await PersonnelService.createPersonnel(personnelData) // Veritabanına kaydet
@@ -109,13 +110,13 @@ export const updatePersonnel = async (req: Request, res: Response): Promise<void
 // Personel silme
 export const deletePersonnel = async (req: Request, res: Response): Promise<void> => {
   try {
-    const deletedPersonnel = await PersonnelService.deletePersonnel(req.params.id)
+    const deletedPersonnel = await Personnel.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true })
     if (!deletedPersonnel) {
       res.status(404).json({ message: 'Personel bulunamadı' })
       return
     }
-    res.status(200).json({ message: 'Personel silindi', personnel: deletedPersonnel })
+    res.status(200).json({ message: 'Personel pasif hale getirildi.', personnel: deletedPersonnel })
   } catch (error) {
-    res.status(500).json({ message: 'Personel silinirken bir hata oluştu', error })
+    res.status(500).json({ message: 'Personel silinirken hata oluştu', error })
   }
 }

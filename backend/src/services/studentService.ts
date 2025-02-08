@@ -8,7 +8,7 @@ export const createStudent = async (studentData: IStudent): Promise<IStudent> =>
 
 // Tüm öğrencileri listeleme
 export const getAllStudents = async (): Promise<IStudent[]> => {
-  return await StudentModel.find()
+  return await StudentModel.find({ isActive: true })
 }
 
 // Öğrenci detayını alma
@@ -30,16 +30,6 @@ export const updateStudent = async (
 // Öğrenci soft delete işlemi (silmek yerine isActive'i false yapmak)
 export const deleteStudent = async (id: string): Promise<IStudent | null> => {
   return await StudentModel.findByIdAndUpdate(id, { isActive: false }, { new: true })
-}
-
-// Silinmiş öğrencileri listeleme
-export const getDeletedStudents = async (): Promise<IStudent[]> => {
-  return await StudentModel.find({ isActive: false })
-}
-
-// Silinmiş öğrenciyi geri yükleme
-export const restoreStudent = async (id: string): Promise<IStudent | null> => {
-  return await StudentModel.findByIdAndUpdate(id, { isActive: true }, { new: true })
 }
 export const getStudentsByFilter = async (filter: Record<string, unknown>) => {
   return await StudentModel.find(filter)

@@ -13,7 +13,7 @@ export const createPersonnel = async (personnelData: IPersonnel): Promise<IPerso
 
 // Tüm personelleri listeleme
 export const getAllPersonnel = async (): Promise<IPersonnel[]> => {
-  return await PersonnelModel.find()
+  return await PersonnelModel.find({ isActive: true })
 }
 
 // Email ile personel bulma
