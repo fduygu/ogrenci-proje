@@ -23,6 +23,7 @@
           @update:model-value="fetchSchedules"
         />
         <q-btn
+          v-if="currentUser.role === 'admin' || (currentUser.role === 'personnel' && currentUser.id === selectedPersonnel?.value)"
           flat
           label="Planı Haftaya Kopyala"
           color="primary"
@@ -110,6 +111,7 @@
             label="Öğrenci Seçin"
             outlined
             multiple
+            :disable="!canEditSelectedPersonnel"
           />
           <q-input
             v-model="note"
@@ -117,13 +119,26 @@
             type="textarea"
             outlined
             class="q-mt-md"
+            :disable="!canEditSelectedPersonnel"
           />
         </q-card-section>
 
         <q-card-actions align="right">
           <q-btn flat label="İptal" color="negative" @click="closeCellModal" />
-          <q-btn flat label="Kaydet" color="primary" @click="saveCellData" />
-          <q-btn flat label="Sil" color="negative" @click="confirmDeleteCell" />
+          <q-btn
+          v-if="currentUser.role === 'admin' || (currentUser.role === 'personnel' && currentUser.id === selectedPersonnel?.value)"
+          flat
+          label="Kaydet"
+          color="primary"
+          @click="saveCellData"
+          />
+          <q-btn
+          v-if="currentUser.role === 'admin' || (currentUser.role === 'personnel' && currentUser.id === selectedPersonnel?.value)"
+          flat
+          label="Sil"
+          color="negative"
+          @click="confirmDeleteCell"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -147,10 +162,12 @@
 
 <script>
 import axios from 'axios'
+import { jwtDecode } from 'jwt-decode'
 
 export default {
   data () {
     return {
+      currentUser: { id: null, role: null },
       currentDate: new Date(), // Haftanın başlangıç tarihi
       selectedPersonnel: null,
       personnelOptions: [],
@@ -163,6 +180,15 @@ export default {
       columns: [],
       rows: [],
       pagination: { rowsPerPage: 0 }
+    }
+  },
+  computed: {
+    canEditSelectedPersonnel () {
+      if (!this.currentUser) return false
+      return (
+        this.currentUser.role === 'admin' ||
+        (this.selectedPersonnel && this.currentUser.id === this.selectedPersonnel.value)
+      )
     }
   },
   methods: {
@@ -435,6 +461,11 @@ export default {
     }
   },
   async mounted () {
+    const token = localStorage.getItem('token')
+    if (token) {
+      const decoded = jwtDecode(token)
+      this.currentUser = { id: decoded.id, role: decoded.role }
+    }
     if (!this.currentDate) {
       this.currentDate = new Date() // Eğer currentDate yoksa bugünü ata
     }
