@@ -53,6 +53,7 @@ export default {
     const classroomNumber = ref('')
     const capacity = ref<number | null>(null)
     const successMessage = ref('')
+    const token = localStorage.getItem('token')
 
     const saveClass = async () => {
       try {
@@ -64,7 +65,10 @@ export default {
         await axios.post('http://localhost:3000/api/classes', {
           className: className.value,
           classroomNumber: classroomNumber.value,
-          capacity: capacity.value
+          capacity: capacity.value,
+          isActive: true
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
         })
 
         successMessage.value = 'Sınıf başarıyla kaydedildi!'

@@ -10,6 +10,7 @@ export interface ISchedule extends Document {
   date: Date;
   time: string;
   note?: string;
+  isActive: boolean;
 }
 
 // Schedule Schema
@@ -21,7 +22,8 @@ const scheduleSchema = new mongoose.Schema({
   studentVehicle: { type: String, enum: ['Evet', 'Hayır'], default: 'Hayır' }, // Servis bilgisi
   date: { type: Date, required: true },
   time: { type: String, required: true },
-  note: { type: String }
+  note: { type: String },
+  isActive: { type: Boolean, default: true }
 })
 
 const Schedule = mongoose.model<ISchedule>('Schedule', scheduleSchema)

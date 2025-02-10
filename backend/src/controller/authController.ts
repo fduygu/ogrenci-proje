@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import Personnel from '../models/personnelModel'
 import nodemailer from 'nodemailer'
+import { createLog } from '../utils/logger'
 
 // ** Kullanıcı Girişi (Login)**
 export const login = async (req: Request, res: Response) => {
@@ -19,7 +20,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Geçersiz e-posta veya şifre' })
     }
 
-    // ✅ Token oluşturma
+    // Token oluşturma
     const token = jwt.sign(
       { id: personnel._id, email: personnel.email, role: personnel.role },
       process.env.JWT_SECRET || 'default_secret_key',
@@ -27,6 +28,8 @@ export const login = async (req: Request, res: Response) => {
     )
 
     console.log('Oluşturulan Token:', token) // Token'in gerçekten oluşup oluşmadığını kontrol etmek için
+    // Giriş başarılıysa log kaydını oluşturuyoruz
+    await createLog(personnel._id.toString(), 'login', `Kullanıcı giriş yaptı: ${personnel.email}`)
 
     res.status(200).json({
       message: 'Giriş başarılı',
@@ -80,7 +83,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       <a href="${resetLink}">${resetLink}</a>
       <p>Bu bağlantı 1 saat içinde geçerliliğini yitirecektir.</p>`
     })
-
+    await createLog(personnel._id.toString(), 'password_reset_request', `Şifre sıfırlama talebi gönderildi: ${personnel.email}`)
     res.status(200).json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi!' })
   } catch (error) {
     console.error('Şifre sıfırlama hatası:', error)
@@ -103,7 +106,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     console.log('Eski Şifre (Hashli):', personnel.password)
 
-    // ✅ Aynı şifre olup olmadığını kontrol et
+    // Aynı şifre olup olmadığını kontrol et
     const isSamePassword = await bcrypt.compare(newPassword, personnel.password)
     console.log('Yeni Şifre Eski Şifre ile Aynı mı?', isSamePassword)
 
@@ -111,19 +114,19 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Yeni şifre eski şifreyle aynı olamaz!' })
     }
 
-    // ✅ Şifreyi hashle (bcrypt ile)
+    // Şifreyi hashle (bcrypt ile)
     const salt = await bcrypt.genSalt(10) // Tutarlı bir salt rounds değeri
     const hashedPassword = await bcrypt.hash(newPassword, salt)
     console.log('Veritabanına Kaydedilmeden Önce Hash:', hashedPassword)
 
-    // ✅ Şifreyi kaydet
+    // Şifreyi kaydet
     personnel.password = hashedPassword
     await personnel.save()
 
-    // ✅ Veritabanından tekrar çekerek doğrula
+    // Veritabanından tekrar çekerek doğrula
     const updatedPersonnel = await Personnel.findById(personnel._id).select('+password')
     console.log('Veritabanından Tekrar Çekilen Hash:', updatedPersonnel?.password)
-
+    await createLog(personnel._id.toString(), 'password_reset_success', `Şifre başarıyla sıfırlandı: ${personnel.email}`)
     res.status(200).json({ message: 'Şifre başarıyla sıfırlandı.' })
   } catch (error) {
     console.error('Şifre sıfırlama hatası:', error)

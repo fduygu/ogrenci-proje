@@ -219,7 +219,6 @@ export default defineComponent({
     <table>
       <thead>
         <tr>
-          <th>Fotoğraf</th>
           <th>Ad</th>
           <th>Soyad</th>
           <th>Servis Kullanımı</th>
@@ -231,7 +230,6 @@ export default defineComponent({
       <tbody>
         ${filteredStudents.value.map(student => `
           <tr>
-            <td>${student.imageUrl ? `<img src="${student.imageUrl}" alt="${student.name}" style="width: 40px; height: 40px; border-radius: 50%;">` : ''}</td>
             <td>${student.name}</td>
             <td>${student.surname}</td>
             <td>${student.vehicle}</td>

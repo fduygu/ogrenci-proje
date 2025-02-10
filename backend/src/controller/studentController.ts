@@ -1,12 +1,14 @@
 import { Request, Response } from 'express'
 import * as StudentService from '../services/studentService'
+import { AuthenticatedRequest } from '../middleware/authMiddleware'
+import { createLog } from '../utils/logger'
 
 interface EducationItem {
   value: string;
 }
 
 // Öğrenci oluşturma
-export const createStudent = async (req: Request, res: Response) => {
+export const createStudent = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (req.body.surname) {
       req.body.surname = req.body.surname.toUpperCase()
@@ -27,6 +29,7 @@ export const createStudent = async (req: Request, res: Response) => {
 
     // Öğrenci oluşturma servisini çağır
     const savedStudent = await StudentService.createStudent(studentData)
+    await createLog(req.user?.id.toString(), 'add_student', `Öğrenci eklendi: ${savedStudent.name} ${savedStudent.surname}`)
     res.status(201).json(savedStudent)
   } catch (error) {
     console.error('Veritabanına kaydedilirken hata:', error) // Hataları logla
@@ -59,12 +62,17 @@ export const getStudentById = async (req: Request, res: Response): Promise<void>
 }
 
 // Öğrenci güncelleme
-export const updateStudent = async (req: Request, res: Response): Promise<void> => {
+export const updateStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const studentId = req.params.id
   const studentData = req.body // Gelen veriler
 
   console.log('Güncellenmek istenen öğrenci ID:', studentId)
   try {
+    const oldStudent = await StudentService.getStudentById(studentId)
+    if (!oldStudent) {
+      res.status(404).json({ message: 'Öğrenci bulunamadı' })
+      return
+    }
     // Soyad alanını büyük harfe dönüştür
     if (studentData.surname) {
       studentData.surname = studentData.surname.toUpperCase()
@@ -90,6 +98,27 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
       res.status(404).json({ message: 'Öğrenci bulunamadı' })
       return
     }
+    // Değişiklikleri takip etmek için sadece değişen alanları yakala
+    const excludedFields = ['_id', 'createdAt', 'updatedAt', '__v']
+    const changedFields = Object.keys(studentData)
+      .filter(
+        (key) =>
+          oldStudent.get(key) !== studentData[key] && !excludedFields.includes(key)
+      )
+      .reduce((acc, key) => {
+        acc[key] = studentData[key]
+        return acc
+      }, {} as Record<string, unknown>)
+
+    if (Object.keys(changedFields).length > 0) {
+      await createLog(
+        req.user?.id.toString(),
+        'update_student',
+        `**Değişiklik Yapan:** ${req.user?.email} (${req.user?.id})
+        **Güncellenen Öğrenci:** ${updatedStudent.name} ${updatedStudent.surname}
+        **Yapılan Değişiklikler:** ${JSON.stringify(changedFields, null, 2)}`
+      )
+    }
     res.status(200).json(updatedStudent)
   } catch (error) {
     res.status(500).json({ message: 'Öğrenci güncellenirken bir hata oluştu', error })
@@ -97,7 +126,7 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
 }
 
 // Öğrenci silme
-export const deleteStudent = async (req: Request, res: Response): Promise<void> => {
+export const deleteStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const studentId = req.params.id
     const updatedStudent = await StudentService.updateStudent(studentId, { isActive: false })
@@ -108,6 +137,7 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
       res.status(404).json({ message: 'Öğrenci bulunamadı' })
       return
     }
+    await createLog(req.user?.id.toString(), 'delete_student', `Öğrenci silindi: ${updatedStudent.name}`)
     res.status(200).json({ message: 'Öğrenci başarıyla silindi.', student: updatedStudent })
   } catch (error) {
     console.error('Silme işlemi sırasında hata oluştu:', error)

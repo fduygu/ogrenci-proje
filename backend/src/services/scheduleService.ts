@@ -38,7 +38,7 @@ class ScheduleService {
 
   // Bir planı sil
   async deleteSchedule (id: string): Promise<void> {
-    await Schedule.findByIdAndDelete(id)
+    await Schedule.findByIdAndUpdate(id, { isActive: false }) //  Soft delete
   }
 }
 

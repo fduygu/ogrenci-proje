@@ -1,26 +1,27 @@
 import { Router } from 'express'
 import * as ClassController from '../controller/classController'
+import { authenticateToken, authenticateAdmin } from '../middleware/authMiddleware'
 
 const router = Router()
 
-router.post('/', (req, res, next) => {
+router.post('/', authenticateToken, authenticateAdmin, (req, res, next) => {
   ClassController.createClass(req, res).catch(next)
-}) // Sınıf oluştur
+})
 
-router.get('/', (req, res, next) => {
+router.get('/', authenticateToken, (req, res, next) => {
   ClassController.getAllClasses(req, res).catch(next)
-}) // Tüm sınıfları getir
+})
 
-router.get('/:id', (req, res, next) => {
+router.get('/:id', authenticateToken, (req, res, next) => {
   ClassController.getClassById(req, res).catch(next)
-}) // ID ile sınıf getir
+})
 
-router.put('/:id', (req, res, next) => {
+router.put('/:id', authenticateToken, authenticateAdmin, (req, res, next) => {
   ClassController.updateClass(req, res).catch(next)
-}) // ID ile sınıf güncelle
+})
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', authenticateToken, authenticateAdmin, (req, res, next) => {
   ClassController.deleteClass(req, res).catch(next)
-}) // ID ile sınıf sil
+})
 
 export default router

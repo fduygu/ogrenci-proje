@@ -3,6 +3,7 @@
     <!-- Üst Araç Çubuğu -->
     <div class="q-mb-md row items-center justify-between">
       <q-btn
+      v-if="currentUser?.role === 'admin'"
         label="Yeni Kayıt"
         color="primary"
         icon="add"
@@ -116,22 +117,22 @@
         label="Düzenle"
         color="primary"
         @click="isEditMode = true"
-        v-if="!isEditMode"
-      />
+        v-if="currentUser?.role === 'admin' && !isEditMode"
+        />
       <q-btn
         flat
         label="Kaydet"
         color="positive"
         @click="updateClass"
-        v-if="isEditMode"
-      />
+        v-if="currentUser?.role === 'admin' && isEditMode"
+        />
       <q-btn
         flat
         label="Sil"
         color="negative"
         @click="confirmDelete"
+        v-if="currentUser?.role === 'admin'"
       />
-      <q-btn flat label="Kapat" @click="isPopupOpen = false" />
     </q-card-actions>
   </q-card>
 </q-dialog>
@@ -147,7 +148,7 @@
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="İptal" @click="isDeleteDialogOpen = false" />
-          <q-btn flat label="Sil" color="red" @click="deleteClass" />
+          <q-btn flat label="Sil" color="red" @click="deleteClass" v-if="currentUser?.role === 'admin'" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -158,6 +159,15 @@
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import ClassPage from './ClassPage.vue' // Yeni kayıt bileşeni
+import { jwtDecode } from 'jwt-decode'
+
+interface DecodedToken {
+  id: string
+  role: string
+  email: string
+  iat: number
+  exp: number
+}
 
 interface Class {
   _id: string;
@@ -178,7 +188,8 @@ export default defineComponent({
     const isLoading = ref(true)
     const isEditMode = ref(false)
     const isDeleteDialogOpen = ref(false)
-
+    const token = localStorage.getItem('token')
+    const currentUser = computed<DecodedToken | null>(() => (token ? jwtDecode<DecodedToken>(token) : null))
     // Tablo Sütunları
     const columns = [
       { name: 'className', label: 'Sınıf Adı', field: 'className', align: 'left' as const },
@@ -196,7 +207,9 @@ export default defineComponent({
     // Sınıfları Backend'den Getir
     const fetchClasses = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/classes')
+        const response = await axios.get('http://localhost:3000/api/classes', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
         classes.value = response.data
       } catch (error) {
         console.error('Sınıflar getirilirken hata oluştu:', error)
@@ -221,11 +234,10 @@ export default defineComponent({
     const updateClass = async () => {
       if (selectedClass.value) {
         try {
-          await axios.put(`http://localhost:3000/api/classes/${selectedClass.value._id}`, selectedClass.value)
-          const index = classes.value.findIndex((c) => c._id === selectedClass.value?._id)
-          if (index !== -1) {
-            classes.value[index] = { ...selectedClass.value }
-          }
+          await axios.put(`http://localhost:3000/api/classes/${selectedClass.value._id}`, selectedClass.value, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          fetchClasses()
           isPopupOpen.value = false
           isEditMode.value = false
         } catch (error) {
@@ -243,8 +255,10 @@ export default defineComponent({
     const deleteClass = async () => {
       if (selectedClass.value) {
         try {
-          await axios.delete(`http://localhost:3000/api/classes/${selectedClass.value._id}`)
-          classes.value = classes.value.filter((c) => c._id !== selectedClass.value?._id)
+          await axios.delete(`http://localhost:3000/api/classes/${selectedClass.value._id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          fetchClasses()
           isPopupOpen.value = false
           isDeleteDialogOpen.value = false
         } catch (error) {
@@ -270,7 +284,8 @@ export default defineComponent({
       updateClass,
       confirmDelete,
       deleteClass,
-      isLoading
+      isLoading,
+      currentUser
     }
   }
 })

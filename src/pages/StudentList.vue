@@ -542,7 +542,6 @@ export default defineComponent({
           <table border="1" width="100%" style="border-collapse: collapse; font-size: 12px; text-align: center;">
             <thead>
               <tr>
-                <th>Fotoğraf</th>
                 <th>Ad</th>
                 <th>Soyad</th>
                 <th>Telefon</th>
@@ -554,7 +553,6 @@ export default defineComponent({
             <tbody>
               ${allData.map((student: Student) => `
                 <tr>
-                  <td>${student.imageUrl ? `<img src="${student.imageUrl}" alt="${student.name}" style="width: 40px; height: 40px; border-radius: 50%;">` : ''}</td>
                   <td>${student.name}</td>
                   <td>${student.surname}</td>
                   <td>${student.phoneNumber1}</td>

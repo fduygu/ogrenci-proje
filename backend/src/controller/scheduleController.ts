@@ -2,9 +2,11 @@ import { Request, Response } from 'express'
 import Schedule from '../models/scheduleModel'
 import PersonnelModel from '../models/personnelModel'
 import StudentModel from '../models/studentModel'
+import { AuthenticatedRequest } from '../middleware/authMiddleware'
+import { createLog } from '../utils/logger'
 
 class ScheduleController {
-  copyScheduleToNextWeek = async (req: Request, res: Response): Promise<void> => {
+  copyScheduleToNextWeek = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { personnelId, startDate, endDate } = req.body
 
@@ -27,37 +29,44 @@ class ScheduleController {
         return
       }
 
-      // Yeni planlar oluştur (bir hafta ileriye kopyala)
-      const newSchedules = await Promise.all(
-        schedules.map(async (schedule) => {
-          const newDate = new Date(schedule.date)
-          newDate.setDate(newDate.getDate() + 7)
+      const newSchedules = []
 
-          // Öğrencileri çek
+      for (const schedule of schedules) {
+        const newDate = new Date(schedule.date)
+        newDate.setDate(newDate.getDate() + 7)
+
+        // Aynı personel, tarih ve saat için plan var mı?
+        const existingSchedule = await Schedule.findOne({
+          personnelId: schedule.personnelId,
+          date: newDate,
+          time: schedule.time
+        })
+
+        //  Eğer aynı plan yoksa ekle
+        if (!existingSchedule) {
           const students = await StudentModel.find({ _id: { $in: schedule.studentIds } })
-
-          // Öğrenci isimlerini oluştur
           const studentNames = students.map(student => `${student.name} ${student.surname}`)
-
-          // Servis kullanımı kontrolü
           const studentVehicle = students.some(student => student.vehicle === 'Evet') ? 'Evet' : 'Hayır'
 
-          return {
+          newSchedules.push({
             personnelId: schedule.personnelId,
             personnelName: schedule.personnelName,
-            studentIds: schedule.studentIds, // ID'leri koru
-            studentNames, // Doğru öğrenci isimlerini ekle
-            studentVehicle, // Servis bilgisi
+            studentIds: schedule.studentIds,
+            studentNames,
+            studentVehicle,
             date: newDate,
             time: schedule.time,
             note: schedule.note
-          }
-        })
-      )
+          })
+        }
+      }
 
-      // Yeni planları veritabanına kaydet
-      await Schedule.insertMany(newSchedules)
+      // Yeni planları kaydet
+      if (newSchedules.length > 0) {
+        await Schedule.insertMany(newSchedules)
+      }
 
+      await createLog(req.user?.id.toString(), 'copy_schedule', `Planlar bir sonraki haftaya kopyalandı: ${startDate} - ${endDate}`)
       res.status(201).json({ message: 'Planlar başarıyla bir sonraki haftaya kopyalandı!' })
     } catch (error) {
       console.error('Planlar kopyalanamadı:', error)
@@ -65,7 +74,7 @@ class ScheduleController {
     }
   }
 
-  createSchedule = async (req: Request, res: Response): Promise<void> => {
+  createSchedule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { personnelId, studentIds, date, time, note } = req.body
       // Validate inputs
@@ -111,7 +120,7 @@ class ScheduleController {
       }
       const newSchedule = new Schedule(scheduleData)
       await newSchedule.save()
-
+      await createLog(req.user?.id.toString(), 'add_schedule', `Yeni plan oluşturuldu: ${formattedDate.toDateString()}`)
       res.status(201).json(newSchedule)
     } catch (error) {
       console.error('Plan oluşturulamadı:', error)
@@ -122,7 +131,7 @@ class ScheduleController {
   // Get All Schedules
   getSchedules = async (req: Request, res: Response): Promise<void> => {
     try {
-      const schedules = await Schedule.find({})
+      const schedules = await Schedule.find({ isActive: true }) // Sadece aktif olanları getir
       res.status(200).json(schedules)
     } catch (error) {
       console.error('Planlar alınamadı:', error)
@@ -159,7 +168,8 @@ class ScheduleController {
         date: {
           $gte: parsedStartDate,
           $lte: parsedEndDate
-        }
+        },
+        isActive: true
       })
 
       res.status(200).json(schedules)
@@ -193,7 +203,7 @@ class ScheduleController {
   }
 
   // Update Schedule
-  updateSchedule = async (req: Request, res: Response): Promise<void> => {
+  updateSchedule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params
       const { personnelId, studentIds, note } = req.body
@@ -236,6 +246,7 @@ class ScheduleController {
 
       // Kaydet ve güncellenmiş kaydı döndür
       const updatedSchedule = await schedule.save()
+      await createLog(req.user?.id.toString(), 'update_schedule', `Plan güncellendi: ${schedule.date.toDateString()}`)
       res.status(200).json(updatedSchedule)
     } catch (error) {
       console.error('Plan güncellenemedi:', error)
@@ -244,16 +255,21 @@ class ScheduleController {
   }
 
   // Delete Schedule
-  deleteSchedule = async (req: Request, res: Response): Promise<void> => {
+  deleteSchedule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params
 
-      const deletedSchedule = await Schedule.findByIdAndDelete(id)
-      if (!deletedSchedule) {
+      const schedule = await Schedule.findById(id)
+      if (!schedule) {
         res.status(404).json({ message: 'Plan bulunamadı!' })
         return
       }
 
+      // ✅ Soft delete işlemi: Planı pasif hale getir
+      schedule.isActive = false
+      await schedule.save()
+
+      await createLog(req.user?.id.toString(), 'delete_schedule', `Plan pasif hale getirildi: ${schedule.date.toDateString()}`)
       res.status(200).json({ message: 'Plan silindi!' })
     } catch (error) {
       console.error('Plan silinemedi:', error)

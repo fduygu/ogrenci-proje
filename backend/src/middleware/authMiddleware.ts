@@ -11,7 +11,7 @@ interface DecodedToken {
 }
 
 // `Request` türünü genişletmek için bir arayüz tanımlıyoruz
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: DecodedToken;
 }
 
