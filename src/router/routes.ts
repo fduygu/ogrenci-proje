@@ -12,10 +12,8 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'register', component: () => import('pages/StudentRegistration.vue') },
-      { path: 'understudy', component: () => import('pages/UnderStudyRegistration.vue') },
       { path: 'understudy-list', component: () => import('pages/UnderStudyList.vue') },
       { path: 'inactivestudy-list', component: () => import('pages/InactiveStudyList.vue') },
-      { path: 'deleted-students', component: () => import('pages/DeletedStudents.vue') },
       { path: 'personel', component: () => import('pages/PersonnelRegistration.vue') },
       { path: 'student-list', component: () => import('pages/StudentList.vue') },
       { path: 'personnel-list', component: () => import('pages/PersonnelList.vue') },
@@ -28,7 +26,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/auth',
-    component: () => import('layouts/AuthLayout.vue'), // 🔥 AuthLayout ekledik!
+    component: () => import('layouts/AuthLayout.vue'), //  AuthLayout ekledim
     children: [
       { path: 'login', component: () => import('pages/LoginPage.vue'), meta: { guestOnly: true } },
       { path: 'forgot-password', component: () => import('pages/ForgotPassword.vue'), meta: { guestOnly: true } },

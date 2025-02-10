@@ -44,6 +44,13 @@ module.exports = configure(function (/* ctx */) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
+      extendWebpack (cfg) {
+        cfg.plugins.push(
+          new (require('html-webpack-plugin'))({
+            favicon: 'public/icons/elogo_128x128.png'
+          })
+        )
+      },
       target: {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node20'

@@ -50,8 +50,14 @@
             <q-btn v-if="!isEditMode" flat label="Düzenle" color="primary" @click="isEditMode = true" />
             <q-btn v-if="isEditMode" flat label="Kaydet" color="primary" @click="updatePersonnel" />
             <q-btn v-if="isEditMode" flat label="Vazgeç" color="secondary" @click="isEditMode = false" />
-            <q-btn flat label="Sil" color="red" @click="confirmDelete" />
-            <q-btn flat label="Kapat" color="primary" v-close-popup />
+            <q-btn
+            v-if="isAdmin"
+            flat
+            label="Sil"
+            color="red"
+            @click="confirmDelete"
+          />
+          <q-btn flat label="Kapat" color="primary" v-close-popup />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -59,7 +65,7 @@
   </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from 'src/utils/axiosInstance'
 
@@ -74,6 +80,7 @@ import api from 'src/utils/axiosInstance'
     phone: string;
     address: string;
     imageUrl?: string;
+    role?: string;
   }
 
 export default defineComponent({
@@ -83,12 +90,16 @@ export default defineComponent({
     const personnel = ref<Personnel | null>(null)
     const isPopupOpen = ref(true)
     const isEditMode = ref(false)
+    const userRole = ref<string>('personnel') // Varsayılan olarak 'personnel'
 
     onMounted(async () => {
       const storedPersonnel = localStorage.getItem('personnel')
+      const storedRole = localStorage.getItem('role')
       if (storedPersonnel) {
         personnel.value = JSON.parse(storedPersonnel)
-        console.log('Stored Personnel:', personnel.value) // Doğru veriyi aldığınızı kontrol edin.
+      }
+      if (storedRole) {
+        userRole.value = storedRole
       }
 
       if (!personnel.value) {
@@ -102,7 +113,8 @@ export default defineComponent({
           branch: '',
           phone: '',
           address: '',
-          imageUrl: '/default-avatar.png'
+          imageUrl: '/default-avatar.png',
+          role: 'personnel'
         }
       }
 
@@ -120,6 +132,7 @@ export default defineComponent({
         }
       }
     })
+    const isAdmin = computed(() => userRole.value === 'admin')// Admin mi kontrolü
 
     const updatePersonnel = async () => {
       if (!personnel.value || !personnel.value._id) {
@@ -139,17 +152,20 @@ export default defineComponent({
         personnel.value = response.data
 
         isEditMode.value = false
+        router.replace({ path: '/redirect' }).then(() => {
+          router.replace({ path: '/auth//main/profile' })
+        })
       } catch (error) {
         console.error('Güncelleme sırasında hata oluştu:', error)
       }
     }
 
     const confirmDelete = async () => {
-      if (personnel.value) {
+      if (isAdmin.value && personnel.value) {
         try {
           await api.delete(`/personnel/${personnel.value._id}`)
           localStorage.removeItem('personnel')
-          router.push('/login')
+          router.push('/auth/login')
         } catch (error) {
           console.error('Silme işlemi sırasında hata oluştu:', error)
         }
@@ -161,7 +177,8 @@ export default defineComponent({
       isPopupOpen,
       isEditMode,
       updatePersonnel,
-      confirmDelete
+      confirmDelete,
+      isAdmin
     }
   }
 })
