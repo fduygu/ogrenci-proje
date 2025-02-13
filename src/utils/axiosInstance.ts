@@ -26,7 +26,7 @@ api.interceptors.response.use(
       console.warn('Oturum süresi doldu! Kullanıcı çıkış yapıyor...')
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login' // Giriş sayfasına yönlendir
+      window.location.href = '/auth/login' // Giriş sayfasına yönlendir
     }
     return Promise.reject(error)
   }
