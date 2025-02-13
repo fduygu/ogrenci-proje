@@ -44,6 +44,9 @@ module.exports = configure(function (/* ctx */) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
+      env: {
+        BASEURL: process.env.BASEURL
+      },
       target: {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node20'
@@ -67,7 +70,6 @@ module.exports = configure(function (/* ctx */) {
 
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
-
       vitePlugins: [
         ['vite-plugin-checker', {
           vueTsc: {
@@ -79,7 +81,6 @@ module.exports = configure(function (/* ctx */) {
         }, { server: false }]
       ]
     },
-
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       // https: true

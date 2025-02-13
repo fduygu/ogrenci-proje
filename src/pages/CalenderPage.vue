@@ -431,13 +431,13 @@ export default {
       try {
         const token = localStorage.getItem('token')
         if (!token) {
-          console.error('🔴 Token bulunamadı! Giriş yapmalısınız.')
+          console.error('Token bulunamadı! Giriş yapmalısınız.')
           this.$q.notify({ type: 'negative', message: 'Giriş yapmalısınız!' })
           return
         }
 
-        console.log('🟢 Token:', token) // Token kontrolü için log ekleyelim.
-        // 📌 Personelleri çek
+        console.log('Token:', token) // Token kontrolü için log ekleyelim.
+        // Personelleri çek
         const personnelResponse = await axios.get('http://localhost:3000/api/personnel', {
           headers: { Authorization: `Bearer ${token}` }
         })
@@ -445,9 +445,9 @@ export default {
           label: `${personnel.name} ${personnel.surname}`,
           value: personnel._id
         }))
-        console.log('🟢 Personel Listesi:', this.personnelOptions)
+        console.log('Personel Listesi:', this.personnelOptions)
 
-        // 📌 Öğrencileri çek
+        // Öğrencileri çek
         const studentResponse = await axios.get('http://localhost:3000/api/students/active-students', {
           headers: { Authorization: `Bearer ${token}` }
         })

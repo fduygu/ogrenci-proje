@@ -24,7 +24,7 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: personnel._id, email: personnel.email, role: personnel.role },
       process.env.JWT_SECRET || 'default_secret_key',
-      { expiresIn: '1h' }
+      { expiresIn: '5m' }
     )
 
     console.log('Oluşturulan Token:', token) // Token'in gerçekten oluşup oluşmadığını kontrol etmek için

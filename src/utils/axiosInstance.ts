@@ -1,8 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
 // Axios örneğini oluştur
+const apiUrl = process.env.BASEURL || 'http://localhost:3000/api'
 const api: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:3000/api' // Backend API adresiniz
+  baseURL: apiUrl // Backend API adresiniz
 })
 
 // Her isteğe otomatik olarak token ekleyelim

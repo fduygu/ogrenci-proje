@@ -132,7 +132,7 @@ export default defineComponent({
       const token = localStorage.getItem('token')
       const personnel = localStorage.getItem('personnel')
       if (!token) {
-        console.warn('🔴 Oturum süresi dolmuş veya giriş yapılmamış. Login sayfasına yönlendiriliyor...')
+        console.warn(' Oturum süresi dolmuş veya giriş yapılmamış. Login sayfasına yönlendiriliyor...')
         router.push('/auth/login')
         return
       }
@@ -140,16 +140,16 @@ export default defineComponent({
       try {
         if (personnel) {
           personnelData.value = JSON.parse(personnel)
-          // 🔥 Eğer imageUrl "/uploads" ile başlıyorsa 3000 portunu ekleyelim
+          //  Eğer imageUrl "/uploads" ile başlıyorsa 3000 portunu ekleyelim
           if (personnelData.value && personnelData.value.imageUrl && personnelData.value.imageUrl.startsWith('/uploads')) {
             personnelData.value.imageUrl = `http://localhost:3000${personnelData.value.imageUrl}`
           }
-          console.log('✅ Personnel Başarıyla Yüklendi:', personnelData.value) // 🔥 Debug
+          console.log('Personnel Başarıyla Yüklendi:', personnelData.value) //  Debug
         } else {
-          console.warn('⚠️ Personnel bilgisi boş!')
+          console.warn(' Personnel bilgisi boş!')
         }
       } catch (error) {
-        console.error('🚨 Personnel bilgisi okunamadı:', error)
+        console.error(' Personnel bilgisi okunamadı:', error)
         logout()
       }
     })

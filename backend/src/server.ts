@@ -16,7 +16,7 @@ app.use(bodyParser.json())
 
 // MongoDB bağlantısı
 mongoose
-  .connect('mongodb://localhost:27017/engelsiz_yasam')
+  .connect('mongodb://engelsizUser:9eCDvN%2EYqr336Uav@10.0.1.197:27017/engelsiz_yasam')
   .then(() => console.log('MongoDB bağlantısı başarılı'))
   .catch((err) => console.error('MongoDB bağlantı hatası:', err))
 

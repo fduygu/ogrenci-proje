@@ -14,7 +14,8 @@
     "rules": {
       "eol-last": "off",
       "semi": ["warn", "always"]
-        }
+        },
+        "ignorePatterns": ["dist/"] 
       
        // Son satır kuralını devre dışı bırakır
     }

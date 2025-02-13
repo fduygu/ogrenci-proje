@@ -34,7 +34,7 @@ export default defineComponent({
     const router = useRouter()
     const errorMessage = ref('')
 
-    // 📌 Sayfa yüklendiğinde token var mı kontrol et
+    // Sayfa yüklendiğinde token var mı kontrol et
     onMounted(() => {
       const token = localStorage.getItem('token')
       if (token) {
@@ -44,20 +44,20 @@ export default defineComponent({
     const login = async () => {
       try {
         errorMessage.value = ''
-        console.log('🟡 Giriş isteği gönderiliyor...')
+        console.log('Giriş isteği gönderiliyor...')
 
         const response = await api.post('/auth/login', {
           email: email.value,
           password: password.value
         })
-        // ✅ Token kontrolü
+        // Token kontrolü
         if (response.data && response.data.token) {
-          console.log('✅ Token Kaydediliyor:', response.data.token)
+          console.log('Token Kaydediliyor:', response.data.token)
           localStorage.setItem('token', response.data.token)
 
           const personnel = response.data.personnel
           if (personnel) {
-            console.log('✅ Gelen Personnel Bilgisi:', personnel)
+            console.log('Gelen Personnel Bilgisi:', personnel)
             const personnelData = {
               _id: personnel.id,
               name: personnel.name || 'Bilinmeyen',

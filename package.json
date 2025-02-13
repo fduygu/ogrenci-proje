@@ -9,7 +9,7 @@
     "lint": "eslint --ext .js,.ts,.vue ./",
     "lint:fix": "eslint --fix --ext .js,.ts,.vue src",
     "test": "echo \"No test specified\" && exit 0",
-    "dev": "concurrently \"pnpm quasar dev\" \"npx ts-node ./backend/server.ts\"",
+    "dev": "quasar dev",
     "build": "quasar build"
   },
   "dependencies": {
