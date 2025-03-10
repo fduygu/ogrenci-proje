@@ -5,28 +5,9 @@
       <div class="text-h6 text-center q-mb-md">Sınıf Ekle</div>
 
       <!-- Form Alanları -->
-      <q-input
-        v-model="className"
-        label="Sınıf Adı"
-        outlined
-        dense
-        required
-      />
-      <q-input
-        v-model="classroomNumber"
-        label="Sınıf Numarası"
-        outlined
-        dense
-        required
-      />
-      <q-input
-        v-model="capacity"
-        label="Kapasite"
-        outlined
-        dense
-        type="number"
-        required
-      />
+      <q-input v-model="className" label="Sınıf Adı" outlined dense required />
+      <q-input v-model="classroomNumber" label="Sınıf Numarası" outlined dense required />
+      <q-input v-model="capacity" label="Kapasite" outlined dense type="number" required />
 
       <!-- Butonlar -->
       <div class="q-mt-md row justify-end">
@@ -44,7 +25,7 @@
 
 <script lang="ts">
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../utils/axiosInstance' // Merkezi axiosInstance dosyasını kullanıyoruz.
 
 export default {
   name: 'ClassPage',
@@ -53,7 +34,6 @@ export default {
     const classroomNumber = ref('')
     const capacity = ref<number | null>(null)
     const successMessage = ref('')
-    const token = localStorage.getItem('token')
 
     const saveClass = async () => {
       try {
@@ -62,24 +42,29 @@ export default {
           return
         }
 
-        await axios.post('http://localhost:3000/api/classes', {
+        const response = await api.post('/classes', {
           className: className.value,
           classroomNumber: classroomNumber.value,
           capacity: capacity.value,
           isActive: true
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
         })
 
-        successMessage.value = 'Sınıf başarıyla kaydedildi!'
-        resetForm()
+        if (response.status === 201) {
+          successMessage.value = 'Sınıf başarıyla kaydedildi!'
+          resetForm()
 
-        setTimeout(() => {
-          successMessage.value = ''
-        }, 3000)
-      } catch (error) {
-        console.error('Sınıf kaydedilemedi:', error)
-        alert('Sınıf kaydedilemedi. Lütfen tekrar deneyin.')
+          setTimeout(() => {
+            window.location.reload() // Sayfayı yenile
+          }, 1000)
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Sınıf kaydedilemedi:', error.message)
+          alert(error.message)
+        } else {
+          console.error('Bilinmeyen bir hata oluştu.')
+          alert('Sınıf kaydedilemedi. Lütfen tekrar deneyin.')
+        }
       }
     }
 
@@ -113,7 +98,7 @@ export default {
 
 .q-form-styled {
   background-color: #f9f9f9;
-  border: 4px solid #2196F3; /* Mavi çerçeve */
+  border: 4px solid #2196F3;
   border-radius: 8px;
   padding: 2rem;
 }
@@ -123,7 +108,7 @@ export default {
 }
 
 .text-green {
-  color: #4caf50; /* Quasar'ın yeşil tonu */
+  color: #4caf50;
 }
 
 .text-bold {

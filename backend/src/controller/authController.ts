@@ -24,7 +24,7 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: personnel._id, email: personnel.email, role: personnel.role },
       process.env.JWT_SECRET || 'default_secret_key',
-      { expiresIn: '5m' }
+      { expiresIn: '30m' }
     )
 
     console.log('Oluşturulan Token:', token) // Token'in gerçekten oluşup oluşmadığını kontrol etmek için
@@ -64,8 +64,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
       process.env.JWT_SECRET as string,
       { expiresIn: '15m' }
     )
-
-    const resetLink = `http://localhost:9000/#/auth/reset-password/${resetToken}`
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:9000'
+    const resetLink = `${frontendUrl}/#/auth/reset-password/${resetToken}`
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',

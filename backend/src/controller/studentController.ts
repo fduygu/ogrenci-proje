@@ -10,6 +10,7 @@ interface EducationItem {
 // Öğrenci oluşturma
 export const createStudent = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    console.log('Gelen req.body içeriği:', req.body)
     if (req.body.surname) {
       req.body.surname = req.body.surname.toUpperCase()
     }
@@ -26,7 +27,6 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response) =>
     }
     // Gelen veriye fotoğraf URL'sini ekle
     const studentData = { ...req.body, imageUrl, education, status: req.body.status || 'Asil', isActive: true }
-
     // Öğrenci oluşturma servisini çağır
     const savedStudent = await StudentService.createStudent(studentData)
     await createLog(req.user?.id.toString(), 'add_student', `Öğrenci eklendi: ${savedStudent.name} ${savedStudent.surname}`)

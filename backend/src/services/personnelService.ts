@@ -4,6 +4,12 @@ import mongoose from 'mongoose'
 // Personel oluşturma
 export const createPersonnel = async (personnelData: IPersonnel): Promise<IPersonnel> => {
   try {
+    // Şifre hashleme kontrolü
+    if (personnelData.password && !personnelData.password.startsWith('$2a$')) {
+      const salt = await bcrypt.genSalt(10)
+      personnelData.password = await bcrypt.hash(personnelData.password, salt)
+    }
+
     const personnel = new PersonnelModel(personnelData)
     return await personnel.save()
   } catch (error) {

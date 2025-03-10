@@ -2,7 +2,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import router from '../src/router' // Doğru yolu kontrol edin
+import router from './router' // Doğru yolu kontrol edin
 import path from 'path'
 import dotenv from 'dotenv'
 

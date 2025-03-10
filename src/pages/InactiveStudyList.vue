@@ -260,7 +260,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../utils/axiosInstance'
 import { format } from 'date-fns'
 
   interface Student {
@@ -360,7 +360,7 @@ export default defineComponent({
 
     const fetchStudents = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/students')
+        const response = await api.get('/students')
         students.value = response.data
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
@@ -377,10 +377,7 @@ export default defineComponent({
     const updateStudent = async () => {
       if (selectedStudent.value) {
         try {
-          const response = await axios.put(
-              `http://localhost:3000/api/students/${selectedStudent.value._id}`,
-              selectedStudent.value
-          )
+          const response = await api.put(`/students/${selectedStudent.value._id}`, selectedStudent.value)
           console.log('Güncelleme başarılı:', response.data)
 
           const index = students.value.findIndex(
@@ -412,7 +409,7 @@ export default defineComponent({
     const deleteStudent = async () => {
       if (selectedStudent.value) {
         try {
-          await axios.delete(`http://localhost:3000/api/students/${selectedStudent.value._id}`)
+          await api.delete(`/students/${selectedStudent.value._id}`)
           students.value = students.value.filter(
             (s) => s._id !== selectedStudent.value?._id
           )

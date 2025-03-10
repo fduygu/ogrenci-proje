@@ -3,7 +3,7 @@ import { Schema, model, Document } from 'mongoose'
 export interface IStudent extends Document {
   name: string
   surname: string
-  age: number
+  birthdate: Date
   phoneNumber1: string
   phoneNumber2: string
   tcNumber: string
@@ -23,7 +23,7 @@ export interface IStudent extends Document {
 const StudentSchema = new Schema<IStudent>({
   name: { type: String, required: true },
   surname: { type: String, required: true },
-  age: { type: Number, required: true },
+  birthdate: { type: Date, required: true },
   phoneNumber1: { type: String, required: true },
   phoneNumber2: { type: String, required: true },
   tcNumber: { type: String, required: true },

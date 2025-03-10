@@ -27,6 +27,8 @@
       flat
       bordered
       dense
+      v-model:pagination="pagination"
+     :rows-per-page-options="[20, 50, 100, 0]"
     >
       <template v-slot:body-cell-className="props">
         <q-td :props="props">
@@ -157,7 +159,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import api from 'src/utils/axiosInstance'
 import ClassPage from './ClassPage.vue' // Yeni kayıt bileşeni
 import { jwtDecode } from 'jwt-decode'
 
@@ -189,6 +191,13 @@ export default defineComponent({
     const isEditMode = ref(false)
     const isDeleteDialogOpen = ref(false)
     const token = localStorage.getItem('token')
+    const pagination = ref({
+      page: 1,
+      rowsPerPage: 20 // Varsayılan olarak 20 kayıt göster
+    })
+
+    const apiUrl = import.meta.env.VITE_BASEURL
+
     const currentUser = computed<DecodedToken | null>(() => (token ? jwtDecode<DecodedToken>(token) : null))
     // Tablo Sütunları
     const columns = [
@@ -207,9 +216,7 @@ export default defineComponent({
     // Sınıfları Backend'den Getir
     const fetchClasses = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/classes', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const response = await api.get(`${apiUrl}/classes`)
         classes.value = response.data
       } catch (error) {
         console.error('Sınıflar getirilirken hata oluştu:', error)
@@ -234,9 +241,7 @@ export default defineComponent({
     const updateClass = async () => {
       if (selectedClass.value) {
         try {
-          await axios.put(`http://localhost:3000/api/classes/${selectedClass.value._id}`, selectedClass.value, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
+          await api.put(`${apiUrl}/classes/${selectedClass.value._id}`, selectedClass.value)
           fetchClasses()
           isPopupOpen.value = false
           isEditMode.value = false
@@ -255,9 +260,7 @@ export default defineComponent({
     const deleteClass = async () => {
       if (selectedClass.value) {
         try {
-          await axios.delete(`http://localhost:3000/api/classes/${selectedClass.value._id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
+          await api.delete(`${apiUrl}/classes/${selectedClass.value._id}`)
           fetchClasses()
           isPopupOpen.value = false
           isDeleteDialogOpen.value = false
@@ -285,7 +288,8 @@ export default defineComponent({
       confirmDelete,
       deleteClass,
       isLoading,
-      currentUser
+      currentUser,
+      pagination
     }
   }
 })

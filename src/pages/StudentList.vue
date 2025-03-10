@@ -73,6 +73,8 @@
       flat
       bordered
       dense
+      v-model:pagination="pagination"
+     :rows-per-page-options="[20, 50, 100, 0]"
     >
       <!-- Fotoğraf Sütunu -->
       <template v-slot:body-cell-photo="props">
@@ -93,6 +95,11 @@
       <template v-slot:body-cell-surname="props">
         <q-td :props="props">
           {{ props.row.surname }}
+        </q-td>
+      </template>
+      <template v-slot:body-cell-birthdate="props">
+        <q-td :props="props">
+          {{ props.row.birthdate }}
         </q-td>
       </template>
       <template v-slot:body-cell-phoneNumber1="props">
@@ -169,6 +176,7 @@
               <q-separator class="q-my-sm" />
               <div v-if="selectedStudent" class="q-mt-md">
               <p><strong>Yaş:</strong> {{ selectedStudent.age }}</p>
+              <p><strong>Doğum T:</strong> {{ formatBirthdate(selectedStudent.birthdate) }}</p>
               <p><strong>Adres:</strong> {{ selectedStudent.address }}</p>
               <p><strong>Veli Bilgisi:</strong> {{ selectedStudent.parentinfo }}</p>
               <p><strong>Telefon1:</strong> {{ selectedStudent.phoneNumber1 }}</p>
@@ -211,6 +219,13 @@
                 v-model="selectedStudent.age"
                 outlined
                 label="Yaş"
+                dense
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="selectedStudent.birthdate"
+                outlined
+                label="Doğum Tarihi"
                 dense
                 class="q-mb-sm"
               />
@@ -340,6 +355,7 @@ interface Student {
   _id: string;
   name: string;
   age: number;
+  birthdate: string;
   surname: string;
   tcNumber: string;
   gender: string;
@@ -370,6 +386,10 @@ export default defineComponent({
     const searchQuery = ref('')
     const selectedFilter = ref('')
     const userRole = ref('') // Kullancı rolünü tutacak
+    const pagination = ref({
+      page: 1,
+      rowsPerPage: 20 // Varsayılan olarak 20 kayıt göster
+    })
     const allStudents = ref<Student[]>([])
     const filteredStudents = computed(() => {
       let filtered = students.value
@@ -388,13 +408,14 @@ export default defineComponent({
         )
       }
 
-      return filtered
+      return filtered.sort((a, b) => a.name.localeCompare(b.name, 'tr', { sensitivity: 'base' }))
     })
     const selectedStudent = ref<Student>({
       _id: '',
       name: '',
       surname: '',
       age: 0,
+      birthdate: '',
       tcNumber: '',
       gender: '',
       vehicle: '',
@@ -448,6 +469,10 @@ export default defineComponent({
 
     const formatDate = (date: string | Date | undefined) => {
       return date ? format(new Date(date), 'dd/MM/yyyy HH:mm') : '-'
+    }
+
+    const formatBirthdate = (date: string | Date | undefined) => {
+      return date ? format(new Date(date), 'dd/MM/yyyy') : '-'
     }
 
     const fetchStudents = async () => {
@@ -634,7 +659,9 @@ export default defineComponent({
       showStudentDetails,
       printPage,
       searchQuery,
-      userRole
+      userRole,
+      formatBirthdate,
+      pagination
     }
   }
 })

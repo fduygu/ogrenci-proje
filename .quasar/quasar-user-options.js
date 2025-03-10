@@ -11,11 +11,13 @@
  * Boot files are your "main.js"
  **/
 
+import lang from 'quasar/lang/tr.js'
+
 
 
 import {Notify} from 'quasar'
 
 
 
-export default { config: {},plugins: {Notify} }
+export default { config: {},lang,plugins: {Notify} }
 

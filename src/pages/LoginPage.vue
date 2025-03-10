@@ -44,7 +44,6 @@ export default defineComponent({
     const login = async () => {
       try {
         errorMessage.value = ''
-        console.log('Giriş isteği gönderiliyor...')
 
         const response = await api.post('/auth/login', {
           email: email.value,
@@ -52,26 +51,25 @@ export default defineComponent({
         })
         // Token kontrolü
         if (response.data && response.data.token) {
-          console.log('Token Kaydediliyor:', response.data.token)
           localStorage.setItem('token', response.data.token)
 
           const personnel = response.data.personnel
           if (personnel) {
-            console.log('Gelen Personnel Bilgisi:', personnel)
             const personnelData = {
               _id: personnel.id,
               name: personnel.name || 'Bilinmeyen',
               surname: personnel.surname || 'Kullanıcı',
               email: personnel.email,
               role: personnel.role,
-              imageUrl: personnel.imageUrl ? `http://localhost:3000${personnel.imageUrl}` : '/default-avatar.png'
+              imageUrl: personnel.imageUrl
+                ? `${import.meta.env.VITE_BASEURL}${personnel.imageUrl}`
+                : '/default-avatar.png'
             }
             localStorage.setItem('personnel', JSON.stringify(personnelData))
           } else {
             console.error('personnel verisi bulunamadı!')
           }
 
-          console.log('Kullanıcı yönlendiriliyor...')
           router.push('/main')
         } else {
           console.error('Giriş başarısız, token alınamadı.')

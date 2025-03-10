@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose'
 export interface IPersonnel extends Document {
   name: string
   surname: string
+  birthdate: Date
   tcNumber: string
   title: string
   branch: string
@@ -18,6 +19,7 @@ export interface IPersonnel extends Document {
 const PersonnelSchema = new Schema<IPersonnel>({
   name: { type: String, required: true },
   surname: { type: String, required: true },
+  birthdate: { type: Date, required: true },
   tcNumber: { type: String, required: true, unique: true },
   title: { type: String, required: true },
   branch: { type: String, required: true },

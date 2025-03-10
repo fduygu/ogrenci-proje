@@ -27,15 +27,14 @@
       flat
       bordered
       dense
+      v-model:pagination="pagination"
+     :rows-per-page-options="[20, 50, 100, 0]"
     >
       <!-- Fotoğraf Sütunu -->
       <template v-slot:body-cell-photo="props">
         <q-td :props="props">
           <q-avatar size="40px" rounded>
-            <img
-             v-if="props.row.imageUrl"
-             :src="`http://localhost:3000${props.row.imageUrl}`"
-             alt="Fotoğraf" />
+            <img v-if="props.row.imageUrl" :src="getImageUrl(props.row.imageUrl)" alt="Fotoğraf" />
             <q-icon v-else name="person" color="grey" />
           </q-avatar>
         </q-td>
@@ -94,15 +93,9 @@
         <q-card-section class="row">
           <!-- Personel Resmi -->
           <div class="col-4 flex flex-center">
-            <q-img
-              v-if="selectedPersonnel?.imageUrl"
-              :src="`http://localhost:3000${selectedPersonnel.imageUrl}`"
-              alt="Fotoğraf"
-              style="width: 150px; height: 150px; border-radius: 50%"
-            />
+            <q-img v-if="selectedPersonnel?.imageUrl" :src="getImageUrl(selectedPersonnel.imageUrl)" alt="Fotoğraf" class="personnel-image" />
             <q-icon v-else name="person" color="grey" size="150px" />
           </div>
-
           <!-- Personel Bilgileri -->
           <div class="col-8">
             <div v-if="!isEditMode">
@@ -251,6 +244,10 @@ export default defineComponent({
     const isLoading = ref(true)
     const isEditMode = ref(false)
     const isDeleteDialogOpen = ref(false)
+    const pagination = ref({
+      page: 1,
+      rowsPerPage: 20 // Varsayılan olarak 20 kayıt göster
+    })
 
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
@@ -265,11 +262,14 @@ export default defineComponent({
     }
 
     const filteredPersonnel = computed(() =>
-      personnel.value.filter((person) =>
-        (person.name + ' ' + person.surname)
-          .toLowerCase()
-          .includes(searchQuery.value.toLowerCase())
-      )
+      personnel.value
+        .slice()
+        .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())) // Ad'a göre sıralama
+        .filter((person) =>
+          (person.name + ' ' + person.surname)
+            .toLowerCase()
+            .includes(searchQuery.value.toLowerCase())
+        )
     )
 
     const fetchPersonnel = async () => {
@@ -333,6 +333,10 @@ export default defineComponent({
         }
       }
     }
+    const getImageUrl = (imageUrl: string | undefined) => {
+      if (!imageUrl) return '/default-avatar.png'
+      return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_BASEURL}${imageUrl}`
+    }
 
     onMounted(fetchPersonnel)
 
@@ -353,7 +357,9 @@ export default defineComponent({
       confirmDelete,
       deletePersonnel,
       isLoading,
-      userRole
+      userRole,
+      getImageUrl,
+      pagination
     }
   }
 })

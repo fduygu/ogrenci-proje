@@ -161,7 +161,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from 'src/utils/axiosInstance'
 import { jwtDecode } from 'jwt-decode'
 
 export default {
@@ -179,7 +179,8 @@ export default {
       activeCell: null,
       columns: [],
       rows: [],
-      pagination: { rowsPerPage: 0 }
+      pagination: { rowsPerPage: 0 },
+      apiUrl: import.meta.env.VITE_BASEURL || 'http://localhost:3000'
     }
   },
   computed: {
@@ -254,8 +255,8 @@ export default {
         const sunday = new Date(monday)
         sunday.setDate(monday.getDate() + 6)
 
-        await axios.post(
-          'http://localhost:3000/api/schedules/copy-to-next-week',
+        await api.post(
+          `${this.apiUrl}/schedules/copy-to-next-week`,
           {
             personnelId: this.selectedPersonnel.value,
             startDate: monday.toISOString().split('T')[0],
@@ -278,14 +279,14 @@ export default {
       sunday.setDate(monday.getDate() + 6)
 
       try {
-        const response = await axios.get(
-      `http://localhost:3000/api/schedules/personnel/${this.selectedPersonnel.value}`,
-      {
-        params: {
-          startDate: monday.toISOString().split('T')[0],
-          endDate: sunday.toISOString().split('T')[0]
+        const response = await api.get(
+        `${this.apiUrl}/schedules/personnel/${this.selectedPersonnel.value}`,
+        {
+          params: {
+            startDate: monday.toISOString().split('T')[0],
+            endDate: sunday.toISOString().split('T')[0]
+          }
         }
-      }
         )
 
         const schedules = response.data || []
@@ -348,7 +349,7 @@ export default {
         }
 
         try {
-          await axios.delete(`http://localhost:3000/api/schedules/${row[col.name]._id}`)
+          await api.delete(`${this.apiUrl}/schedules/${row[col.name]._id}`)
           this.fetchSchedules()
           this.closeCellModal()
         } catch (error) {
@@ -390,9 +391,9 @@ export default {
 
       try {
         if (scheduleId) {
-          await axios.put(`http://localhost:3000/api/schedules/${scheduleId}`, data)
+          await api.put(`${this.apiUrl}/schedules/${scheduleId}`, data)
         } else {
-          const response = await axios.post('http://localhost:3000/api/schedules', data)
+          const response = await api.post(`${this.apiUrl}/schedules`, data)
           row[col.name] = { ...data, _id: response.data._id }
         }
         this.fetchSchedules()
@@ -438,9 +439,7 @@ export default {
 
         console.log('Token:', token) // Token kontrolü için log ekleyelim.
         // Personelleri çek
-        const personnelResponse = await axios.get('http://localhost:3000/api/personnel', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const personnelResponse = await api.get(`${this.apiUrl}/personnel`, { headers: { Authorization: `Bearer ${token}` } })
         this.personnelOptions = personnelResponse.data.map((personnel) => ({
           label: `${personnel.name} ${personnel.surname}`,
           value: personnel._id
@@ -448,9 +447,7 @@ export default {
         console.log('Personel Listesi:', this.personnelOptions)
 
         // Öğrencileri çek
-        const studentResponse = await axios.get('http://localhost:3000/api/students/active-students', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const studentResponse = await api.get(`${this.apiUrl}/students/active-students`, { headers: { Authorization: `Bearer ${token}` } })
         this.studentOptions = studentResponse.data.map((student) => ({
           label: `${student.name} ${student.surname}`,
           value: student._id

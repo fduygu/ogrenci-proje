@@ -6,8 +6,8 @@
             <!-- Kullanıcı Resmi -->
             <div class="col-4 flex flex-center">
               <q-img
-                v-if="personnel?.imageUrl"
-                :src="personnel.imageUrl.startsWith('http') ? personnel.imageUrl : `http://localhost:3000${personnel.imageUrl}`"
+                 v-if="personnel?.imageUrl"
+                :src="getImageUrl(personnel.imageUrl)"
                 alt="Fotoğraf"
                 style="width: 150px; height: 150px; border-radius: 50%"
               />
@@ -98,10 +98,7 @@ export default defineComponent({
       if (storedPersonnel) {
         personnel.value = JSON.parse(storedPersonnel)
       }
-      if (storedRole) {
-        userRole.value = storedRole
-      }
-
+      userRole.value = storedRole || 'personnel'
       if (!personnel.value) {
         personnel.value = {
           _id: '',
@@ -120,7 +117,7 @@ export default defineComponent({
 
       console.log('Gönderilen Personel ID:', personnel.value?._id)
 
-      if (personnel.value._id !== '') {
+      if (personnel.value._id) {
         try {
           console.log('Veritabanından güncel veriyi çekiyor...')
           const response = await api.get(`/personnel/${personnel.value._id}`)
@@ -133,7 +130,10 @@ export default defineComponent({
       }
     })
     const isAdmin = computed(() => userRole.value === 'admin')// Admin mi kontrolü
-
+    const getImageUrl = (imageUrl: string | undefined) => {
+      if (!imageUrl) return '/default-avatar.png'
+      return imageUrl.startsWith('http') ? imageUrl : `http://10.0.1.197:3000${imageUrl}`
+    }
     const updatePersonnel = async () => {
       if (!personnel.value || !personnel.value._id) {
         console.error('Güncelleme hatası: ID tanımsız!')
@@ -164,7 +164,7 @@ export default defineComponent({
       if (isAdmin.value && personnel.value) {
         try {
           await api.delete(`/personnel/${personnel.value._id}`)
-          localStorage.removeItem('personnel')
+          localStorage.clear()
           router.push('/auth/login')
         } catch (error) {
           console.error('Silme işlemi sırasında hata oluştu:', error)
@@ -178,7 +178,8 @@ export default defineComponent({
       isEditMode,
       updatePersonnel,
       confirmDelete,
-      isAdmin
+      isAdmin,
+      getImageUrl
     }
   }
 })

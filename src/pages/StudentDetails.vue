@@ -38,7 +38,7 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from 'src/utils/axiosInstance'
 
 interface Student {
   _id: string;
@@ -73,7 +73,7 @@ export default defineComponent({
     // Öğrenci Detaylarını Getir
     const fetchStudentDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/students/${id}`)
+        const response = await api.get(`/students/${id}`)
         student.value = response.data
       } catch (error) {
         console.error('Öğrenci bilgileri alınırken hata oluştu:', error)

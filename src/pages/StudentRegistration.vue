@@ -13,7 +13,7 @@
       </div>
       <!-- Yaş ve Telefon -->
       <div class="q-field-row">
-        <q-input v-model="studentData.age" type="number" label="Yaş" required />
+        <q-input v-model="studentData.birthdate" type="date" label="Doğum Tarihi"  mask="DD-MM-YYYY" required />
         <q-input v-model="studentData.phoneNumber1" label="Telefon 1" mask="(###) ### - ## ##" />
         <q-input v-model="studentData.phoneNumber2" label="Telefon 2" mask="(###) ### - ## ##" />
       </div>
@@ -49,15 +49,16 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, watch } from 'vue'
 import { Notify } from 'quasar'
-import axios from 'axios'
+import api from 'src/utils/axiosInstance'
 
 export default defineComponent({
   name: 'StudentRegistration',
-  setup () {
+  emits: ['student-added'],
+  setup (_, { emit }) {
     const studentData = reactive({
       name: '',
       surname: '',
-      age: null as number | null,
+      birthdate: '',
       phoneNumber1: '',
       phoneNumber2: '',
       tcNumber: '',
@@ -73,13 +74,17 @@ export default defineComponent({
     const selectedFile = ref<File | null>(null)
     // Soyadı büyük harfe çevir
     watch(
-      () => studentData.surname,
-      (newValue) => {
-        if (newValue) {
-          studentData.surname = newValue.toUpperCase()
+      () => [studentData.name, studentData.surname],
+      ([newName, newSurname]) => {
+        if (newName) {
+          studentData.name = newName.toLocaleUpperCase('tr-TR')
+        }
+        if (newSurname) {
+          studentData.surname = newSurname.toLocaleUpperCase('tr-TR')
         }
       }
     )
+
     const genderOptions = [
       { label: 'Erkek', value: 'Erkek' },
       { label: 'Kadın', value: 'Kadın' }
@@ -125,11 +130,7 @@ export default defineComponent({
         if (!token) {
           throw new Error('Token bulunamadı! Lütfen giriş yapın.')
         }
-        const { data } = await axios.get(`http://localhost:3000/api/students/check-tc/${studentData.tcNumber}`, {
-          headers: {
-            Authorization: `Bearer ${token}` // Token'ı header'a ekle
-          }
-        })
+        const { data } = await api.get(`/students/check-tc/${studentData.tcNumber}`)
         if (data.exists) {
           Notify.create({ message: 'Bu T.C. kimlik numarası zaten kayıtlı!', color: 'negative', position: 'top' })
           return
@@ -140,7 +141,7 @@ export default defineComponent({
         formData.append('name', studentData.name)
         formData.append('surname', studentData.surname)
         formData.append('tcNumber', studentData.tcNumber)
-        formData.append('age', studentData.age?.toString() || '')
+        formData.append('birthdate', studentData.birthdate)
         formData.append('phoneNumber1', studentData.phoneNumber1)
         formData.append('phoneNumber2', studentData.phoneNumber2)
         formData.append('gender', studentData.gender.value)
@@ -155,16 +156,19 @@ export default defineComponent({
         if (selectedFile.value) {
           formData.append('file', selectedFile.value)
         }
-
-        // Backend'e istek gönder
-        await axios.post('http://localhost:3000/api/students', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`// Header'a token ekle
-          }
+        formData.forEach((value, key) => {
+          console.log(`Gönderilen veri: ${key} = ${value}`)
         })
+        console.log('student data:', studentData)
+        console.log('form data:', formData)
+        // Backend'e istek gönder
+        await api.post('/students', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
         Notify.create({ message: 'Kayıt başarılı!', color: 'positive', position: 'top' })
-        resetForm()
+        emit('student-added') // **Liste güncellenecek**
+
+        setTimeout(() => {
+          location.reload() // **Sayfa yenilenecek**
+        }, 500)
       } catch (error) {
         console.error('Kayıt hatası:', error)
         Notify.create({ message: 'Kayıt sırasında bir hata oluştu!', color: 'negative', position: 'top' })
@@ -176,7 +180,7 @@ export default defineComponent({
       Object.assign(studentData, {
         name: '',
         surname: '',
-        age: null,
+        birthdate: '',
         phoneNumber1: '',
         phoneNumber2: '',
         tcNumber: '',

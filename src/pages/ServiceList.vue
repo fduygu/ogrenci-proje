@@ -20,13 +20,15 @@
       row-key="_id"
       flat
       bordered
+      v-model:pagination="pagination"
+     :rows-per-page-options="[20, 50, 100, 0]"
     >
       <template v-slot:body-cell-photo="props">
         <q-td :props="props">
           <q-avatar size="40px" rounded>
-            <img v-if="props.row.imageUrl" :src="props.row.imageUrl" alt="Fotoğraf" />
-            <q-icon v-else name="person" color="grey" />
-          </q-avatar>
+  <img v-if="props.row.imageUrl" :src="getImageUrl(props.row.imageUrl)" alt="Fotoğraf" />
+  <q-icon v-else name="person" color="grey" />
+</q-avatar>
         </q-td>
       </template>
       <template v-slot:body-cell-name="props">
@@ -103,7 +105,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router' // Vue Router kullanımı
-import axios from 'axios'
+import api from 'src/utils/axiosInstance'
 import { format } from 'date-fns'
 
 interface Student {
@@ -130,7 +132,7 @@ export default defineComponent({
       { label: 'Hayır', value: 'Hayır' }
     ]
     const user = JSON.parse(localStorage.getItem('personnel') || '{}')
-    const isAdmin = user.role === 'admin'
+    const isAdmin = computed(() => user?.role === 'admin')
     const columns = [
       { name: 'photo', label: 'Fotoğraf', field: 'imageUrl', align: 'left' as const },
       { name: 'name', label: 'Ad', field: 'name', align: 'left' as const },
@@ -140,9 +142,16 @@ export default defineComponent({
       { name: 'status', label: 'Durumu', field: 'status', align: 'left' as const },
       { name: 'createdAt', label: 'Kayıt Tarihi', field: 'createdAt', align: 'left' as const }
     ]
-
+    const pagination = ref({
+      page: 1,
+      rowsPerPage: 20 // Varsayılan olarak 20 kayıt göster
+    })
     const formatDate = (date: string | Date | undefined) => {
       return date ? format(new Date(date), 'dd/MM/yyyy HH:mm') : '-'
+    }
+    const getImageUrl = (imageUrl: string | undefined) => {
+      if (!imageUrl) return '/default-avatar.png'
+      return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_BASEURL}${imageUrl}`
     }
 
     const fetchStudents = async () => {
@@ -152,11 +161,7 @@ export default defineComponent({
           console.error('Token bulunamadı!')
           return
         }
-        const response = await axios.get('http://localhost:3000/api/students/students-with-service', {
-          headers: {
-            Authorization: `Bearer ${token}` // Token'ı header'a ekliyoruz
-          }
-        })
+        const response = await api.get('/students/students-with-service')
         students.value = response.data
       } catch (error) {
         console.error('Öğrenciler getirilirken hata oluştu:', error)
@@ -164,7 +169,9 @@ export default defineComponent({
     }
 
     const filteredStudents = computed(() => {
-      return students.value.filter(student => student.status === 'Asil')
+      return students.value
+        .filter(student => student.status === 'Asil')
+        .sort((a, b) => a.name.localeCompare(b.name, 'tr', { sensitivity: 'base' }))
     })
     const showStudentDetails = (student: Student) => {
       selectedStudent.value = { ...student }
@@ -181,7 +188,7 @@ export default defineComponent({
     }
 
     const updateStudent = async () => {
-      if (isAdmin && selectedStudent.value) {
+      if (isAdmin.value && selectedStudent.value) {
         try {
           const token = localStorage.getItem('token') // Token'ı alıyoruz
           console.log('Token:', token) // Token'ı logla, doğru olup olmadığını görmek için
@@ -190,15 +197,7 @@ export default defineComponent({
             console.error('Token bulunamadı!')
             return
           }
-          await axios.put(
-            `http://localhost:3000/api/students/${selectedStudent.value._id}`,
-            selectedStudent.value,
-            {
-              headers: {
-                Authorization: `Bearer ${token}` // Header'a token'ı ekliyoruz
-              }
-            }
-          )
+          await api.put(`/students/${selectedStudent.value._id}`, selectedStudent.value)
           const index = students.value.findIndex((s) => s._id === selectedStudent.value?._id)
           if (index !== -1) {
             students.value[index] = { ...selectedStudent.value }
@@ -308,7 +307,9 @@ export default defineComponent({
       statusText,
       printPage,
       goBack, // Geri fonksiyonunu ekledik
-      isAdmin
+      isAdmin,
+      getImageUrl,
+      pagination
     }
   }
 })

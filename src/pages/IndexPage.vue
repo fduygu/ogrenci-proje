@@ -179,7 +179,7 @@ export default {
     // Verileri backend'den çek
     async fetchData () {
       try {
-        // 📌 Personelleri çek
+        //  Personelleri çek
         const personnelResponse = await api.get('/personnel')
         this.personnelOptions = personnelResponse.data.map((personnel) => ({
           ...personnel,
@@ -212,11 +212,9 @@ export default {
         }
         this.rows = times
 
-        // 📌 Planlama bilgilerini al
+        //  Planlama bilgilerini al
         const scheduleResponse = await api.get('/schedules')
         this.schedules = scheduleResponse.data
-        console.log('✅ Planlama Verileri:', this.schedules)
-
         // Gelen verileri tabloya aktar
         this.rows.forEach((row) => {
           this.columns.slice(1).forEach((col) => {
@@ -311,6 +309,7 @@ export default {
 }
 /* Boşlukları kaldır ve içeriği küçült */
 .cell-content {
+  text-transform: uppercase;
   padding: 2px 5px; /* Hücre içindeki boşluğu azalt */
   text-align: center; /* İçeriği ortala */
   white-space: nowrap; /* Satır kaymasını önle */
@@ -321,6 +320,7 @@ export default {
   font-weight: bold;
   display: inline-block; /* Blok olarak değil, sadece içeriğe göre genişle */
   padding: 2px 5px;
+  text-transform: uppercase;
 }
 
 /* Tek öğrenci isimlerini de aynı şekilde küçült */
@@ -331,6 +331,7 @@ export default {
 @media print {
   .print-btn-container {
     display: none; /* Yazdırma sırasında butonu gizle */
+    text-transform: uppercase !important;
   }
   .bg-green {
     background-color: #b0b0b0 !important; /* Yeşil olanları gri yap */

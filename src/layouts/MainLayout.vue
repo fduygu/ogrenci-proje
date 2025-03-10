@@ -103,6 +103,7 @@ export default defineComponent({
     const router = useRouter()
     const leftDrawerOpen = ref(false)
     const personnelData = ref<Personnel | null>(null)
+    const apiUrl = import.meta.env.VITE_BASEURL || 'http://localhost:3000'
     const toggleLeftDrawer = () => {
       leftDrawerOpen.value = !leftDrawerOpen.value
     }
@@ -126,7 +127,7 @@ export default defineComponent({
       }
 
       // Eğer imageUrl "/uploads" ile başlıyorsa, 3000 portunu ekle
-      return `http://localhost:3000${imageUrl}`
+      return `${apiUrl}${imageUrl}`
     }
     onMounted(() => {
       const token = localStorage.getItem('token')
@@ -142,9 +143,8 @@ export default defineComponent({
           personnelData.value = JSON.parse(personnel)
           //  Eğer imageUrl "/uploads" ile başlıyorsa 3000 portunu ekleyelim
           if (personnelData.value && personnelData.value.imageUrl && personnelData.value.imageUrl.startsWith('/uploads')) {
-            personnelData.value.imageUrl = `http://localhost:3000${personnelData.value.imageUrl}`
+            personnelData.value.imageUrl = `${apiUrl}${personnelData.value.imageUrl}`
           }
-          console.log('Personnel Başarıyla Yüklendi:', personnelData.value) //  Debug
         } else {
           console.warn(' Personnel bilgisi boş!')
         }
